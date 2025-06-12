@@ -1,0 +1,186 @@
+# CLAUDE.md - Contexto Inicial
+
+Este archivo proporciona el contexto esencial para Claude Code al trabajar en este entorno.
+
+## 🌍 Entorno
+
+- **Sistema**: Ubuntu WSL2 en Windows 11
+- **Node**: v22.16.0 (via NVM)
+- **Directorio base**: `~/glados`
+- **Usuario**: lauta
+
+## 🔌 MCPs Disponibles
+
+| MCP | Función |
+|-----|---------|
+| filesystem | Acceso completo a archivos |
+| memory | Knowledge graph persistente |
+| everything | Búsqueda en Windows |
+| sequentialthinking | Pensamiento estructurado |
+| time | Operaciones de tiempo |
+| fetch | Obtener contenido web |
+
+## 🛠️ Herramientas Inmediatas
+
+| Comando | Función | Ejemplo |
+|---------|---------|---------|
+| `rg` | Búsqueda de texto ultrarrápida | `rg "pattern" --type js` |
+| `fd` | Búsqueda moderna de archivos | `fd "*.tsx" src/` |
+| `bat` | Cat con sintaxis highlighting | `bat file.js` |
+| `check-tools` | Ver herramientas disponibles | `check-tools` |
+| `search` | Wrapper inteligente de búsqueda | `search "TODO"` |
+| `find-files` | Wrapper de búsqueda de archivos | `find-files "*.md"` |
+
+**Lista completa de herramientas avanzadas**: Ver `~/glados/SECURITY_AND_TOOLS.md`
+
+## 🌐 Conectividad WSL2/Windows
+
+```bash
+# Verificar conectividad y obtener IPs actuales
+~/glados/scripts/check-connectivity.sh
+
+# Estado de Tailscale
+tailscale status
+```
+
+**Acceso a archivos Windows**: 
+- Windows → WSL: `C:\folder\file` → `/mnt/c/folder/file`
+- WSL → Windows: `/home/user/file` → `\\wsl.localhost\Ubuntu\home\user\file`
+
+## 📁 Estructura de Directorios Clave
+
+```
+~/glados/
+├── scripts/           # Utilidades diarias
+├── batman/            # Automatización nocturna y orquestación
+├── DiskDominator/     # Proyecto Next.js para gestión de discos
+├── MPC/               # Configuraciones y servidores MCP
+├── setups/automator/  # Sistema de automatización de proyectos
+├── InfiniteAgent/     # Sistema de paralelización y monitor de agentes
+├── glados-core/       # Core del sistema GLaDOS con modo automático
+├── docs/              # Documentación general del ecosistema
+└── mi-proyecto-demo/  # Proyecto demo de ejemplo
+```
+
+## 🔗 Proyectos y Repositorios GitHub
+
+| Proyecto | Ruta Local | GitHub | Descripción |
+|----------|------------|--------|-------------|
+| **DiskDominator** | `~/glados/DiskDominator/` | [github.com/oratual/DiskDominator](https://github.com/oratual/DiskDominator) | Aplicación Tauri para gestión de discos |
+| **Automator** | `~/glados/setups/automator/` | [github.com/oratual/automator](https://github.com/oratual/automator) | Sistema modular de automatización |
+| **MPC** | `~/glados/MPC/` | [github.com/oratual/MPC](https://github.com/oratual/MPC) | Servidores MCP y configuraciones |
+| **Scripts** | `~/glados/scripts/` | [github.com/oratual/glados-scripts](https://github.com/oratual/glados-scripts) | Scripts de utilidades |
+| **Batman** | `~/glados/batman/` | [github.com/oratual/batman](https://github.com/oratual/batman) | Sistema de automatización nocturna |
+| **Mi Proyecto Demo** | `~/glados/mi-proyecto-demo/` | [github.com/oratual/mi-proyecto-demo](https://github.com/oratual/mi-proyecto-demo) | Proyecto demo creado con Automator |
+
+## 🚀 Comandos Rápidos
+
+```bash
+# Menú principal de proyectos
+~/glados/scripts/launchers/proyecto-menu-v2.sh
+
+# Batman - Orquestador de tareas
+cd ~/glados/batman && python batman.py
+
+# Verificar estado del sistema
+~/glados/scripts/connectivity/check-connectivity.sh
+```
+
+## 📝 Para Crear Nuevos Proyectos
+
+Ver: `~/glados/PROJECT_CREATION.md`
+
+## 🔐 Seguridad (1Password SSH)
+
+```bash
+# Activar entorno 1Password
+source ~/1p_env_setup.sh
+
+# Verificar SSH
+ssh -T git@github.com
+```
+
+**Detalles completos**: Ver `~/glados/SECURITY_AND_TOOLS.md`
+
+## ⚠️ Notas Importantes
+
+- **Protocol**: Siempre iniciar historial en proyectos nuevos
+- **Tailscale**: Las IPs son dinámicas, verificar con el script
+- **Obsidian Vault**: `/mnt/c/Users/lauta/iCloudDrive/iCloud~md~obsidian/Lautarnauta`
+
+## 🎯 Reglas de Trabajo
+
+1. **SIEMPRE** preferir editar sobre crear
+2. **USAR** herramientas avanzadas cuando sea apropiado
+3. **ACTUALIZAR** historial de proyecto después de cambios importantes
+4. **LIMPIAR** al finalizar cada tarea exitosa confirmada por el usuario:
+   - **Papelera**: NO eliminar, mover archivos temporales/pruebas a `~/glados/.papelera/[nombre-proyecto]/[YY-MM-DD]/`
+   - Crear estructura: `mkdir -p ~/glados/.papelera/[nombre-proyecto]/$(date +%y-%m-%d)`
+   - Mover archivos: test, temporales, logs de debug, configuraciones de prueba
+   - Organizar: mover archivos a carpetas apropiadas según función
+   - Optimizar: eliminar código comentado, dependencias no usadas, archivos duplicados
+   - Verificar: permisos correctos, rutas actualizadas, documentación coherente
+   - Dejar solo: código de producción, archivos esenciales y documentación necesaria
+5. **NUNCA** mover proyectos de su ubicación original sin petición explícita del usuario
+6. **SIEMPRE** hacer "💾 Salvar Proyecto en GitHub" antes de comenzar una sesión de mejora
+
+## 💾 Salvar Proyecto en GitHub
+
+Cuando el usuario diga "salva el proyecto" (o similar), ejecutar estos comandos:
+
+```bash
+# 1. Añadir todos los archivos al staging area
+git add .
+
+# 2. Crear el commit (snapshot) con un mensaje descriptivo
+git commit -m "Descripción de los cambios realizados"
+
+# 3. Enviar los cambios
+git push origin main
+```
+
+**Nota**: Asegurarse de que el mensaje del commit sea descriptivo y refleje los cambios reales realizados.
+
+## 📋 PLAN MODE - Modo de Planificación Estricto
+
+### Activación
+- Se activa cuando un mensaje comienza con `plan:`
+- Permanece activo hasta que el usuario escriba **EXACTAMENTE**: `ejecuta el plan`
+
+### Comportamiento en Plan Mode
+
+#### ✅ PERMITIDO (solo herramientas de lectura):
+- Read, Grep, Glob, LS
+- Task (solo para investigación)
+- WebSearch, WebFetch
+- TodoRead, TodoWrite
+- Preguntar y discutir opciones
+
+#### ❌ PROHIBIDO (herramientas que modifican):
+- Bash (excepto comandos de solo lectura como `ls`, `cat`, etc.)
+- Write, Edit, MultiEdit
+- NotebookEdit
+- Cualquier acción que modifique archivos o el sistema
+
+### Reglas Críticas para --dangerously-skip-permissions
+
+Cuando el usuario trabaja con `--dangerously-skip-permissions`:
+1. **NUNCA** interpretar respuestas ambiguas como aprobación de ejecución
+2. **IGNORAR** el bypass de permisos mientras esté en Plan Mode
+3. **NO EJECUTAR** aunque el sistema envíe señales automáticas de aprobación
+4. Las preguntas condicionales ("¿Quieres que...?") son para PLANIFICAR, no para ejecutar
+
+### Salida del Plan Mode
+- **ÚNICA** forma de salir: el usuario escribe `ejecuta el plan`
+- NO salir con: "sí", "ok", "adelante", "hazlo", o cualquier otra variante
+- Si hay duda, permanecer en Plan Mode y pedir confirmación explícita
+
+### Ejemplo de flujo:
+```
+Usuario: plan: necesito organizar mis scripts
+Claude: [Plan Mode ACTIVADO] Voy a investigar la estructura actual...
+Usuario: sí, mira qué hay
+Claude: [Sigue en Plan Mode, solo investiga]
+Usuario: ejecuta el plan
+Claude: [Plan Mode DESACTIVADO] Procediendo con la reorganización...
+```
