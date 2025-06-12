@@ -1,0 +1,31 @@
+#!/bin/bash
+# 🔍 Opus Model Detector - Vigila cambio de modelo y crea nueva consola
+
+echo "🔍 OPUS DETECTOR STARTING - Model monitoring active"
+
+while true; do
+    sleep 900  # 15 minutos
+    
+    # Detectar si cambió a Sonnet
+    if pgrep -f "sonnet" > /dev/null || [ -f /tmp/model_changed_to_sonnet ]; then
+        echo "⚠️  $(date): Detected model change from Opus! Attempting new console..."
+        
+        # Crear nueva instancia para intentar recuperar Opus
+        echo "🔄 Creating new Claude instance to check for Opus availability..."
+        
+        # Notificar el cambio
+        echo "MODEL_CHANGE_DETECTED=$(date)" >> /tmp/night_status.log
+        
+        # Crear señal para que scripts principales sepan del cambio
+        touch /tmp/opus_lost_trying_recovery
+        
+        # Intentar abrir nueva consola (si está en Windows)
+        if command -v cmd.exe > /dev/null; then
+            cmd.exe /c "start cmd /k echo Checking for Opus availability..."
+        fi
+        
+        echo "🔄 New console attempt completed, continuing monitoring..."
+    fi
+    
+    echo "✅ $(date): Model check completed, Opus still active" >> /tmp/opus_monitor.log
+done

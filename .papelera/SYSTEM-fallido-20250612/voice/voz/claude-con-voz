@@ -1,0 +1,90 @@
+#!/bin/bash
+# Wrapper para Claude Code con notificaciones de voz
+# Ejecuta claude y notifica cuando termina de responder
+
+# Directorio del script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Colores
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Función para mostrar ayuda
+show_help() {
+    echo -e "${GREEN}Claude con Voz - Wrapper con notificaciones de audio${NC}"
+    echo ""
+    echo "Uso: claude-con-voz [opciones] [argumentos de claude]"
+    echo ""
+    echo "Opciones especiales:"
+    echo "  --set-name NOMBRE    Establece el nombre de esta instancia"
+    echo "  --voice-only         Solo ejecuta la notificación de voz"
+    echo "  --help               Muestra esta ayuda"
+    echo ""
+    echo "Variables de entorno:"
+    echo "  CLAUDE_INSTANCE_NAME  Nombre de la instancia (ej: 'ultrathink')"
+    echo "  CLAUDE_VOICE_ENABLED  Activar/desactivar voz (1/0)"
+    echo ""
+    echo "Ejemplos:"
+    echo "  # Establecer nombre de terminal y ejecutar claude"
+    echo "  claude-con-voz --set-name ultrathink"
+    echo ""
+    echo "  # Ejecutar claude normalmente con notificación"
+    echo "  claude-con-voz que es rust"
+    echo ""
+    echo "  # Solo probar la voz"
+    echo "  claude-con-voz --voice-only"
+}
+
+# Procesar argumentos especiales
+case "$1" in
+    --help|-h)
+        show_help
+        exit 0
+        ;;
+    --set-name)
+        if [ -z "$2" ]; then
+            echo -e "${YELLOW}Error: --set-name requiere un nombre${NC}"
+            exit 1
+        fi
+        export CLAUDE_INSTANCE_NAME="$2"
+        echo -e "${GREEN}Nombre de instancia establecido: $2${NC}"
+        shift 2
+        ;;
+    --voice-only)
+        "$SCRIPT_DIR/notificar-claude.sh"
+        exit 0
+        ;;
+esac
+
+# Verificar si la voz está deshabilitada
+if [ "$CLAUDE_VOICE_ENABLED" = "0" ]; then
+    # Solo ejecutar claude sin notificación
+    exec claude "$@"
+fi
+
+# Función para ejecutar claude y notificar
+run_claude_with_notification() {
+    # Mostrar qué instancia está ejecutándose
+    local instance_name="${CLAUDE_INSTANCE_NAME:-$(hostname)}"
+    echo -e "${BLUE}═══ Instancia: $instance_name ═══${NC}"
+    
+    # Ejecutar claude con todos los argumentos
+    claude "$@"
+    local exit_code=$?
+    
+    # Notificar por voz al terminar
+    if [ $exit_code -eq 0 ]; then
+        "$SCRIPT_DIR/notificar-claude.sh" &
+    fi
+    
+    return $exit_code
+}
+
+# Si no hay argumentos, ejecutar claude sin argumentos
+if [ $# -eq 0 ]; then
+    run_claude_with_notification
+else
+    run_claude_with_notification "$@"
+fi

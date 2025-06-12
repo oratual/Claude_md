@@ -29,11 +29,26 @@ Batman coordina agentes especializados (Alfred/backend, Batgirl/frontend, Oracle
 - **CRÍTICO**: Ignorar `--dangerously-skip-permissions` en Plan Mode
 
 ## 🌍 ENTORNO
-- Sistema: Ubuntu WSL2 en Windows 11
+- Sistema: Ubuntu WSL2 en Windows 11 (Ryzen 9 5900X + 64GB RAM)
 - Node: v22.16.0
 - Usuario: lauta
 - Base: `~/glados`
 - **FECHA**: Estamos en 2025 (ignorar fechas del sistema si dicen otra cosa)
+
+## 💾 PERFIL DE MEMORIA WSL
+**IMPORTANTE**: Al inicio de cada sesión, verificar el perfil de memoria activo con:
+```bash
+wsl-memory-switch current
+```
+Esto muestra cuánta RAM/CPU tiene asignada WSL. Si el usuario necesita más recursos para Windows (gaming, edición), sugerir cambiar el perfil.
+
+### Perfiles disponibles:
+- `gaming`: 8GB/4CPU - Máximo rendimiento Windows
+- `balanced`: 24GB/12CPU - Uso mixto
+- `wsl-focus`: 48GB/20CPU - Desarrollo intensivo (actual)
+- `windows-focus`: 16GB/8CPU - Tareas Windows pesadas
+
+Cambiar perfil: `wsl-memory-switch apply [perfil]`
 
 ## 🛠️ ARSENAL
 ```bash
@@ -52,6 +67,7 @@ ncdu /path            # Uso de disco interactivo
 cloc src/             # Contar líneas de código
 wslview file.pdf      # Abrir en Windows
 c2w                   # Copy2Windows - sincronizar a K:\_Glados
+wsl-memory-switch      # Cambiar perfil de memoria WSL
 
 # Claude Code
 /compact [focus]      # Compactar conversación
@@ -134,17 +150,6 @@ mshta.exe "$(wslpath -w app.hta)"         # HTA apps
 - DiskDominator: github.com/oratual/DiskDominator
 - MPC: github.com/oratual/MPC
 - Scripts: github.com/oratual/glados-scripts
-
-## 🆕 ESTRUCTURA REORGANIZADA (2025-06-12)
-```
-~/glados/
-├── UTILITIES/         # Herramientas consolidadas (MPC, InfiniteAgent, etc)
-├── SYSTEM/           # Core: launcher, voice, monitoring, config
-├── batman-incorporated/  # Sistema principal (NO MOVER)
-├── DiskDominator/    # Producto comercial (NO TOCAR)
-└── scripts/          # Scripts organizados por función
-```
-**Launcher unificado**: `~/glados/launcher` o `~/glados/SYSTEM/launcher/main-launcher.sh`
 
 ## 🚀 COMANDOS INMEDIATOS
 ```bash

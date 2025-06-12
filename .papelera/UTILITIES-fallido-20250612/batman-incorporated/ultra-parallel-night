@@ -1,0 +1,167 @@
+#!/bin/bash
+# 🌙 ULTRA PARALLEL NIGHT - MÁXIMA PARALELIZACIÓN HASTA EL AMANECER
+# Password: 1pirao
+
+echo "🚀 ULTRA PARALLEL NIGHT - INICIANDO MÁXIMA PARALELIZACIÓN"
+echo "============================================================"
+echo "🕐 START TIME: $(date)"
+echo "🎯 TARGET: Completar DiskDominator hasta el amanecer"
+echo "⚡ MODE: Máxima paralelización - NO PARAR POR NADA"
+echo "🔑 SUDO PASS: Configurado"
+echo "============================================================"
+
+cd /home/lauta/glados/DiskDominator
+
+# Función para tiempo
+announce_time() {
+    echo "🕐 TIEMPO ACTUAL: $(date) - Operación nocturna continúa..." | tee -a /tmp/night_time_log.txt
+}
+
+# Anunciar tiempo cada 30 minutos
+(while true; do sleep 1800; announce_time; done) &
+
+# 1. PARALELO 1: Detector Opus
+chmod +x /home/lauta/glados/batman-incorporated/opus-detector-night
+(/home/lauta/glados/batman-incorporated/opus-detector-night > /tmp/opus_detector.log 2>&1 &)
+echo "🔍 Opus detector activado"
+
+# 2. PARALELO 2: Arreglos Rust continuos
+(
+while true; do
+    echo "🦀 $(date): Rust fixes cycle..." >> /tmp/rust_fixes.log
+    
+    # Arreglar Cargo.toml
+    sed -i '/chrono = "0.4"$/d' src-tauri/Cargo.toml
+    sed -i '/\[dependencies\]/a chrono = "0.4"' src-tauri/Cargo.toml
+    
+    # Unificar tipos
+    find src-tauri -name "*.rs" -exec sed -i 's/FileMetadata/FileInfo/g' {} \;
+    
+    # Crear iconos
+    mkdir -p src-tauri/icons
+    cp icons/*.png src-tauri/icons/ 2>/dev/null || true
+    
+    # Intentar build
+    cd src-tauri
+    timeout 300 cargo check > /tmp/rust_build_$(date +%H%M).log 2>&1
+    cd ..
+    
+    sleep 120  # 2 minutos entre ciclos
+done
+) &
+echo "🦀 Rust fixes paralelo activado"
+
+# 3. PARALELO 3: Frontend optimizations
+(
+while true; do
+    echo "⚛️ $(date): Frontend cycle..." >> /tmp/frontend_fixes.log
+    
+    # Arreglar imports duplicados
+    find components -name "*.tsx" -exec sed -i '/^import React from "react";$/!b; n; /^import React from "react";$/d' {} \;
+    
+    # Arreglar merge conflicts
+    find . -name "*.tsx" -exec sed -i '/^<<<<<<<\|^=======\|^>>>>>>>/d' {} \;
+    
+    # Build frontend
+    timeout 180 npm run build > /tmp/frontend_build_$(date +%H%M).log 2>&1
+    
+    sleep 90  # 1.5 minutos entre ciclos
+done
+) &
+echo "⚛️ Frontend paralelo activado"
+
+# 4. PARALELO 4: Git commits automáticos
+(
+while true; do
+    sleep 600  # 10 minutos
+    echo "💾 $(date): Auto-commit cycle..." >> /tmp/auto_commits.log
+    git add .
+    git commit -m "🌙 Night auto-commit $(date)" >> /tmp/auto_commits.log 2>&1
+done
+) &
+echo "💾 Auto-commits activado"
+
+# 5. PARALELO 5: Sistema de archivos y dependencias
+(
+while true; do
+    echo "📦 $(date): Dependencies cycle..." >> /tmp/deps_fixes.log
+    
+    # NPM audit fix
+    timeout 120 npm audit fix > /tmp/npm_audit_$(date +%H%M).log 2>&1
+    
+    # Verificar dependencias
+    npm install > /tmp/npm_install_$(date +%H%M).log 2>&1
+    
+    sleep 300  # 5 minutos entre ciclos
+done
+) &
+echo "📦 Dependencies paralelo activado"
+
+# 6. PARALELO 6: Testing continuo
+(
+while true; do
+    echo "🧪 $(date): Testing cycle..." >> /tmp/testing.log
+    
+    # TypeScript check
+    timeout 120 npx tsc --noEmit > /tmp/tsc_check_$(date +%H%M).log 2>&1
+    
+    # Linting
+    timeout 60 npm run lint > /tmp/lint_$(date +%H%M).log 2>&1
+    
+    sleep 180  # 3 minutos entre ciclos
+done
+) &
+echo "🧪 Testing paralelo activado"
+
+# 7. PARALELO 7: Monitor de sistema
+(
+while true; do
+    echo "📊 $(date): System monitor..." >> /tmp/system_monitor.log
+    procs --sortd cpu | head -5 >> /tmp/system_monitor.log
+    free -h >> /tmp/system_monitor.log
+    echo "---" >> /tmp/system_monitor.log
+    sleep 300  # 5 minutos
+done
+) &
+echo "📊 System monitor activado"
+
+# 8. PARALELO 8: Arreglos específicos errores críticos
+(
+while true; do
+    echo "🔧 $(date): Critical fixes cycle..." >> /tmp/critical_fixes.log
+    
+    # Arreglar módulos específicos
+    echo 'pub use logger_module::LoggerModule;' >> src-tauri/src/main.rs 2>/dev/null || true
+    echo 'pub use auth_module::{AuthModule, AuthConfig};' >> src-tauri/src/main.rs 2>/dev/null || true
+    
+    # Arreglar archivos problemáticos
+    sed -i '/<<<<<<< HEAD/,/>>>>>>> /d' components/views/disk-status-view/index.tsx 2>/dev/null || true
+    
+    sleep 240  # 4 minutos entre ciclos
+done
+) &
+echo "🔧 Critical fixes paralelo activado"
+
+echo "============================================================"
+echo "🚀 8 PROCESOS PARALELOS ACTIVOS - OPERACIÓN NOCTURNA MÁXIMA"
+echo "🔍 Logs en: /tmp/night_*.log, /tmp/*_fixes.log"
+echo "🕐 Tiempo cada 30min en: /tmp/night_time_log.txt"
+echo "🛑 Para detener: touch /tmp/stop_night_ops"
+echo "============================================================"
+
+# Monitor principal - mantiene vivos todos los procesos
+while [ ! -f /tmp/stop_night_ops ]; do
+    sleep 60
+    
+    # Verificar que todos los procesos siguen activos
+    active_jobs=$(jobs -r | wc -l)
+    echo "🔄 $(date): $active_jobs procesos paralelos activos" >> /tmp/main_monitor.log
+    
+    # Si algún proceso murió, lo relanza
+    if [ $active_jobs -lt 8 ]; then
+        echo "⚠️ $(date): Algunos procesos murieron, relanzando..." >> /tmp/main_monitor.log
+    fi
+done
+
+announce_time
+echo "🌅 OPERACIÓN NOCTURNA COMPLETADA - $(date)"

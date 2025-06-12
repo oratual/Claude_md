@@ -1,0 +1,151 @@
+# Configuración del Dream Mode de Batman
+
+dream_mode:
+  # Activar/desactivar modo sueño
+  enabled: true
+  
+  # Cuándo puede soñar Batman
+  schedule:
+    # Horarios permitidos para soñar (24h format)
+    allowed_hours:
+      - "02:00-03:00"  # Después de tareas críticas
+      - "05:00-06:00"  # Antes de reportes matutinos
+      - "idle"         # Cuando no hay tareas pendientes
+    
+    # Duración mínima de idle antes de soñar (minutos)
+    min_idle_time: 15
+    
+    # Duración máxima de una sesión de sueños (minutos)
+    max_session_duration: 60
+    
+  # Tipos de sueño y sus probabilidades
+  dream_states:
+    rem:
+      probability: 0.3
+      description: "Exploración rápida de patrones"
+      min_duration: 5
+      max_duration: 15
+      
+    deep:
+      probability: 0.2
+      description: "Análisis profundo de correlaciones"
+      min_duration: 10
+      max_duration: 30
+      
+    lucid:
+      probability: 0.3
+      description: "Resolución consciente de problemas"
+      min_duration: 15
+      max_duration: 25
+      
+    light:
+      probability: 0.2
+      description: "Escaneo de asociaciones"
+      min_duration: 3
+      max_duration: 10
+      
+  # Parámetros de análisis
+  analysis:
+    # Mínimo de datos históricos necesarios para soñar (días)
+    min_history_days: 7
+    
+    # Confianza mínima para considerar un insight accionable
+    min_confidence_threshold: 0.7
+    
+    # Número máximo de insights por sesión
+    max_insights_per_session: 10
+    
+    # Factores de correlación
+    correlation_factors:
+      temporal: 0.3      # Peso de patrones temporales
+      causal: 0.4        # Peso de relaciones causa-efecto
+      performance: 0.3   # Peso de métricas de rendimiento
+      
+  # Integración con otros sistemas
+  integration:
+    # Compartir insights con otros modos
+    share_with:
+      - task_optimizer
+      - prediction_engine
+      - anomaly_detector
+      
+    # Guardar sueños para análisis futuro
+    persistence:
+      dream_journal_path: "batman_dreams.json"
+      max_dreams_stored: 1000
+      compress_old_dreams: true
+      
+  # Experimentos durante sueños
+  experiments:
+    # Permitir mini-experimentos seguros
+    allow_safe_experiments: true
+    
+    # Tipos de experimentos permitidos
+    allowed_experiments:
+      - "benchmark_algorithms"     # Comparar algoritmos
+      - "test_configurations"      # Probar configs
+      - "simulate_optimizations"   # Simular mejoras
+      
+    # Límites de seguridad
+    safety_limits:
+      max_cpu_percent: 10          # Máximo CPU durante experimentos
+      max_memory_mb: 512           # Máximo RAM
+      max_duration_seconds: 300    # Timeout experimentos
+      
+  # Temas de exploración
+  exploration_themes:
+    - pattern: "performance_optimization"
+      weight: 0.25
+      focus_areas:
+        - "io_bottlenecks"
+        - "memory_usage"
+        - "cpu_efficiency"
+        
+    - pattern: "failure_prevention"
+      weight: 0.30
+      focus_areas:
+        - "disk_space"
+        - "memory_leaks"
+        - "dependency_failures"
+        
+    - pattern: "resource_efficiency"
+      weight: 0.25
+      focus_areas:
+        - "energy_usage"
+        - "storage_optimization"
+        - "network_bandwidth"
+        
+    - pattern: "automation_opportunities"
+      weight: 0.20
+      focus_areas:
+        - "repetitive_tasks"
+        - "predictable_patterns"
+        - "manual_interventions"
+        
+  # Reportes de sueños
+  reporting:
+    # Generar reporte después de cada sesión
+    generate_report: true
+    
+    # Formato de reportes
+    report_format: "markdown"
+    
+    # Incluir en reportes
+    include_in_reports:
+      - discoveries
+      - insights
+      - experiments
+      - recommendations
+      - confidence_scores
+      
+    # Notificaciones
+    notifications:
+      # Notificar insights de alta confianza
+      high_confidence_threshold: 0.85
+      
+      # Métodos de notificación
+      methods:
+        - log_file
+        - morning_summary
+        # - email  # Opcional
+        # - slack  # Opcional

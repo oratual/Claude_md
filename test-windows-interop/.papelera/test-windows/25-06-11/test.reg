@@ -1,0 +1,7 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\WSLTest]
+"TestValue"="Creado desde WSL"
+"TestDWORD"=dword:00000001
+"TestDate"="2025-01-11"
+"TestPath"="\\\\wsl.localhost\\Ubuntu-24.04\\home\\lauta\\glados"

@@ -1,0 +1,71 @@
+#!/bin/bash
+# 🌙 Batman Night Operations - Launcher Script
+
+echo "🦇 BATMAN NIGHT OPERATIONS - INITIATING"
+echo "=================================="
+echo "Start time: $(date)"
+echo "Target: Complete DiskDominator 100%"
+echo "Duration: 8 hours autonomous"
+echo "=================================="
+
+# Backup actual antes de empezar
+echo "📦 Creating safety backup..."
+cd /home/lauta/glados/DiskDominator
+git add . && git commit -m "🌙 Pre-night-operations backup $(date)"
+
+# Crear archivos de monitoring
+mkdir -p /home/lauta/glados/batman-incorporated/logs/night-ops
+touch /home/lauta/glados/batman-incorporated/night_progress.txt
+echo "NIGHT_OPERATIONS_START=$(date +%s)" > /home/lauta/glados/batman-incorporated/night_progress.txt
+echo "STATUS=INITIALIZING" >> /home/lauta/glados/batman-incorporated/night_progress.txt
+
+# Preparar sistema de recovery
+echo "🛡️ Setting up recovery system..."
+cat > /home/lauta/glados/batman-incorporated/night-monitor.sh << 'EOF'
+#!/bin/bash
+# Monitor nocturno - verifica que Batman siga trabajando
+while [ ! -f /tmp/batman_emergency_stop ]; do
+    sleep 300  # Check every 5 minutes
+    
+    if ! pgrep -f "batman.py.*MISIÓN NOCTURNA" > /dev/null; then
+        echo "⚠️  $(date): Batman process died, restarting..." >> /tmp/batman_night_monitor.log
+        cd /home/lauta/glados/batman-incorporated
+        nohup python3 batman.py "MISIÓN NOCTURNA RECOVERY: Continuar completando DiskDominator desde donde se quedó" --mode=redundante --real-agents --auto --max-agents=4 --verbose >> /tmp/batman_night_recovery.log 2>&1 &
+    fi
+    
+    # Progress check
+    echo "✅ $(date): Batman still running" >> /tmp/batman_night_monitor.log
+done
+EOF
+
+chmod +x /home/lauta/glados/batman-incorporated/night-monitor.sh
+
+# Lanzar Batman principal
+echo "🚀 Launching main Batman process..."
+cd /home/lauta/glados/batman-incorporated
+
+nohup python3 batman.py "MISIÓN NOCTURNA: Completar DiskDominator al 100% - arreglar 16 errores críticos Rust (FileInfo/FileMetadata, imports módulos, iconos, tipos duplicados), integrar frontend-backend eliminando mock data, implementar sistema archivos real, build production sin errores, testing automatizado, instalador Windows funcional" --mode=infinity --real-agents --auto --max-agents=4 --verbose > /tmp/batman_night_main_$(date +%Y%m%d_%H%M).log 2>&1 &
+
+BATMAN_PID=$!
+echo "BATMAN_MAIN_PID=$BATMAN_PID" >> /home/lauta/glados/batman-incorporated/night_progress.txt
+
+# Lanzar monitor de recovery
+echo "🛡️ Launching recovery monitor..."
+nohup /home/lauta/glados/batman-incorporated/night-monitor.sh > /tmp/batman_monitor.log 2>&1 &
+MONITOR_PID=$!
+echo "MONITOR_PID=$MONITOR_PID" >> /home/lauta/glados/batman-incorporated/night_progress.txt
+
+# Crear comando de parada de emergencia
+echo "echo 'EMERGENCY_STOP' > /tmp/batman_emergency_stop && pkill -f batman.py && echo '🛑 Batman stopped at \$(date)'" > /home/lauta/glados/batman-incorporated/emergency-stop
+chmod +x /home/lauta/glados/batman-incorporated/emergency-stop
+
+echo "🌙 BATMAN NIGHT OPERATIONS DEPLOYED"
+echo "====================================="
+echo "Main PID: $BATMAN_PID"
+echo "Monitor PID: $MONITOR_PID"
+echo "Progress file: /home/lauta/glados/batman-incorporated/night_progress.txt"
+echo "Emergency stop: ./emergency-stop"
+echo "Monitor logs: /tmp/batman_night_*.log"
+echo "====================================="
+echo "🦇 Batman will work autonomously until morning..."
+echo "Good night! 🌙"

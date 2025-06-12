@@ -1,0 +1,133 @@
+#!/bin/bash
+#
+# Batman Monitor Controller - Control seguro del sistema de monitoreo
+#
+
+MONITOR_PID_FILE="/tmp/batman_monitor.pid"
+MONITOR_CMD="/home/lauta/glados/batman-incorporated/batman-monitor-safe"
+
+start_monitor() {
+    if [ -f "$MONITOR_PID_FILE" ] && kill -0 "$(cat $MONITOR_PID_FILE)" 2>/dev/null; then
+        echo "🦇 Monitor ya está corriendo (PID: $(cat $MONITOR_PID_FILE))"
+        return 0
+    fi
+    
+    echo "🦇 Iniciando Batman Monitor..."
+    cd /home/lauta/glados/batman-incorporated
+    nohup "$MONITOR_CMD" --daemon > /tmp/batman_monitor_startup.log 2>&1 &
+    echo $! > "$MONITOR_PID_FILE"
+    
+    sleep 2
+    if kill -0 "$(cat $MONITOR_PID_FILE)" 2>/dev/null; then
+        echo "✅ Monitor iniciado correctamente (PID: $(cat $MONITOR_PID_FILE))"
+        echo "📄 Status: /tmp/batman_status.json"
+        echo "📝 Log: /tmp/batman_monitor.log"
+        echo "👀 Para ver: batman-view"
+    else
+        echo "❌ Error iniciando monitor"
+        cat /tmp/batman_monitor_startup.log
+        rm -f "$MONITOR_PID_FILE"
+        return 1
+    fi
+}
+
+stop_monitor() {
+    if [ ! -f "$MONITOR_PID_FILE" ]; then
+        echo "🦇 Monitor no está corriendo"
+        return 0
+    fi
+    
+    PID=$(cat "$MONITOR_PID_FILE")
+    if kill -0 "$PID" 2>/dev/null; then
+        echo "🦇 Deteniendo monitor (PID: $PID)..."
+        kill "$PID"
+        sleep 2
+        
+        if kill -0 "$PID" 2>/dev/null; then
+            echo "⚠️  Forzando detención..."
+            kill -9 "$PID"
+        fi
+        
+        rm -f "$MONITOR_PID_FILE"
+        echo "✅ Monitor detenido"
+    else
+        echo "🦇 Monitor no estaba corriendo, limpiando PID file"
+        rm -f "$MONITOR_PID_FILE"
+    fi
+}
+
+status_monitor() {
+    if [ -f "$MONITOR_PID_FILE" ] && kill -0 "$(cat $MONITOR_PID_FILE)" 2>/dev/null; then
+        echo "🦇 Monitor corriendo (PID: $(cat $MONITOR_PID_FILE))"
+        echo "📊 Status actual:"
+        /home/lauta/glados/batman-incorporated/batman-view --compact
+    else
+        echo "🦇 Monitor no está corriendo"
+        if [ -f "$MONITOR_PID_FILE" ]; then
+            rm -f "$MONITOR_PID_FILE"
+        fi
+    fi
+}
+
+case "$1" in
+    start)
+        start_monitor
+        ;;
+    stop)
+        stop_monitor
+        ;;
+    restart)
+        stop_monitor
+        sleep 1
+        start_monitor
+        ;;
+    status)
+        status_monitor
+        ;;
+    view)
+        /home/lauta/glados/batman-incorporated/batman-view "${@:2}"
+        ;;
+    logs)
+        echo "🦇 Batman Monitor Logs:"
+        echo "===================="
+        if [ -f "/tmp/batman_monitor.log" ]; then
+            cat /tmp/batman_monitor.log
+        else
+            echo "No hay logs disponibles"
+        fi
+        ;;
+    tail)
+        /home/lauta/glados/batman-incorporated/batman-view --tail
+        ;;
+    watch)
+        /home/lauta/glados/batman-incorporated/batman-view --watch
+        ;;
+    clean)
+        echo "🦇 Limpiando archivos del monitor..."
+        stop_monitor
+        rm -f /tmp/batman_status.json /tmp/batman_monitor.log /tmp/batman_monitor_errors.log /tmp/batman_monitor_startup.log
+        echo "✅ Archivos limpiados"
+        ;;
+    *)
+        echo "🦇 Batman Monitor Controller"
+        echo "Uso: $0 {start|stop|restart|status|view|logs|tail|watch|clean}"
+        echo ""
+        echo "Comandos:"
+        echo "  start    - Inicia el monitor en background"
+        echo "  stop     - Detiene el monitor"
+        echo "  restart  - Reinicia el monitor"
+        echo "  status   - Muestra si está corriendo y status compacto"
+        echo "  view     - Muestra status detallado (acepta opciones de batman-view)"
+        echo "  logs     - Muestra logs completos"
+        echo "  tail     - Sigue logs en tiempo real"
+        echo "  watch    - Modo watch (actualiza cada 3s)"
+        echo "  clean    - Limpia todos los archivos del monitor"
+        echo ""
+        echo "Ejemplos:"
+        echo "  $0 start                    # Inicia monitor"
+        echo "  $0 view --compact           # Status compacto"
+        echo "  $0 view --json              # Status en JSON"
+        echo "  $0 watch                    # Modo watch interactivo"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,582 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        color: var(--batman-yellow);
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: bold;
+        font-family: 'Bebas Neue', cursive;
+        color: white;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #999;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+
+    .activity-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--batman-gray);
+    }
+
+    .activity-item {
+        position: relative;
+        margin-bottom: 30px;
+        padding-left: 30px;
+    }
+
+    .activity-dot {
+        position: absolute;
+        left: -25px;
+        top: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--batman-yellow);
+        border: 3px solid var(--batman-black);
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .activity-time {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .quick-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        background: var(--batman-dark);
+        border: 2px solid var(--batman-gray);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .quick-action:hover {
+        border-color: var(--batman-yellow);
+        transform: translateY(-3px);
+        color: var(--batman-yellow);
+        text-decoration: none;
+    }
+
+    .quick-action i {
+        font-size: 24px;
+        margin-right: 10px;
+    }
+
+    .system-health {
+        background: linear-gradient(135deg, var(--batman-gray) 0%, var(--batman-dark) 100%);
+        border-radius: 10px;
+        padding: 20px;
+        position: relative;
+    }
+
+    .health-indicator {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+        position: relative;
+    }
+
+    .health-circle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            var(--batman-yellow) 0deg,
+            var(--batman-yellow) var(--health-angle),
+            var(--batman-gray) var(--health-angle),
+            var(--batman-gray) 360deg
+        );
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .health-circle::before {
+        content: '';
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        background: var(--batman-black);
+        border-radius: 50%;
+    }
+
+    .health-value {
+        position: relative;
+        font-size: 36px;
+        font-weight: bold;
+        font-family: 'Bebas Neue', cursive;
+        color: var(--batman-yellow);
+        z-index: 1;
+    }
+
+    .alert-item {
+        background: var(--batman-dark);
+        border-left: 4px solid var(--batman-red);
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .alert-item.warning {
+        border-left-color: var(--batman-yellow);
+    }
+
+    .alert-item.info {
+        border-left-color: var(--batman-blue);
+    }
+
+    .alert-item:hover {
+        transform: translateX(5px);
+    }
+
+    .chart-container {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        height: 300px;
+        position: relative;
+    }
+
+    @keyframes batSignal {
+        0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+        50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
+        100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+    }
+
+    .bat-signal {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: var(--batman-yellow);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+        animation: batSignal 4s linear infinite;
+    }
+
+    .bat-signal:hover {
+        animation-play-state: paused;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4 fade-in-up">
+                <span class="bat-logo"></span>
+                Panel de Control
+            </h1>
+            <p class="lead">Estado del sistema a las {{ current_time }}</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card fade-in-up">
+                <i class="fas fa-tasks stat-icon"></i>
+                <div class="stat-value">{{ stats.tasks_total }}</div>
+                <div class="stat-label">Tareas Totales</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card fade-in-up" style="animation-delay: 0.1s;">
+                <i class="fas fa-check-circle stat-icon" style="color: var(--batman-green);"></i>
+                <div class="stat-value">{{ stats.tasks_completed }}</div>
+                <div class="stat-label">Completadas</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card fade-in-up" style="animation-delay: 0.2s;">
+                <i class="fas fa-hard-drive stat-icon"></i>
+                <div class="stat-value">{{ stats.disk_usage }}</div>
+                <div class="stat-label">Uso de Disco</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card fade-in-up" style="animation-delay: 0.3s;">
+                <i class="fas fa-file-alt stat-icon"></i>
+                <div class="stat-value">{{ stats.reports_count }}</div>
+                <div class="stat-label">Reportes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- System Health -->
+        <div class="col-md-4 mb-4">
+            <div class="bat-card fade-in-up">
+                <h3 class="mb-4"><i class="fas fa-heartbeat"></i> Salud del Sistema</h3>
+                <div class="system-health">
+                    <div class="health-indicator">
+                        <div class="health-circle" style="--health-angle: {{ health_angle }}deg;">
+                            <div class="health-value">{{ health_percentage }}%</div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h5>Estado General: <span class="badge badge-batman">Excelente</span></h5>
+                        <small class="text-muted">Última verificación: hace 5 minutos</small>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h5>Alertas Activas</h5>
+                <div class="alerts-list">
+                    {% if alerts %}
+                        {% for alert in alerts %}
+                        <div class="alert-item {{ alert.type }}">
+                            <strong>{{ alert.title }}</strong>
+                            <p class="mb-0 small">{{ alert.message }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No hay alertas activas 🦇</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-md-4 mb-4">
+            <div class="bat-card fade-in-up" style="animation-delay: 0.1s;">
+                <h3 class="mb-4"><i class="fas fa-clock"></i> Actividad Reciente</h3>
+                <div class="activity-timeline">
+                    {% for activity in recent_activity %}
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-time">{{ activity.time }}</div>
+                        <div class="activity-content">
+                            <strong>{{ activity.action }}</strong>
+                            <p class="mb-0 small text-muted">{{ activity.details }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="/reports" class="btn btn-batman-secondary btn-block mt-3">
+                    Ver Todos los Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-4 mb-4">
+            <div class="bat-card fade-in-up" style="animation-delay: 0.2s;">
+                <h3 class="mb-4"><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="#" class="quick-action" onclick="runAnalysis()">
+                            <i class="fas fa-search"></i>
+                            <span>Análisis</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" class="quick-action" onclick="runOptimization()">
+                            <i class="fas fa-rocket"></i>
+                            <span>Optimizar</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/tasks" class="quick-action">
+                            <i class="fas fa-plus"></i>
+                            <span>Nueva Tarea</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" class="quick-action" onclick="generateReport()">
+                            <i class="fas fa-file-export"></i>
+                            <span>Reportar</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/wizard" class="quick-action">
+                            <i class="fas fa-magic"></i>
+                            <span>Wizard</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" class="quick-action" onclick="runTest()">
+                            <i class="fas fa-flask"></i>
+                            <span>Test</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="bat-card fade-in-up">
+                <h3 class="mb-4"><i class="fas fa-chart-line"></i> Análisis de Disco (7 días)</h3>
+                <div class="chart-container" id="disk-chart">
+                    <!-- Aquí iría un gráfico real con Chart.js -->
+                    <canvas id="diskChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="bat-card fade-in-up" style="animation-delay: 0.1s;">
+                <h3 class="mb-4"><i class="fas fa-chart-bar"></i> Tareas por Tipo</h3>
+                <div class="chart-container" id="tasks-chart">
+                    <!-- Aquí iría un gráfico real con Chart.js -->
+                    <canvas id="tasksChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Scheduled Run -->
+    <div class="row">
+        <div class="col-12">
+            <div class="bat-card fade-in-up">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4><i class="fas fa-moon"></i> Próxima Ejecución Programada</h4>
+                        <p class="mb-0">Batman vigilará tu sistema a las <strong>3:00 AM</strong></p>
+                    </div>
+                    <div>
+                        <button class="btn btn-batman" onclick="runNow()">
+                            <i class="fas fa-play"></i> Ejecutar Ahora
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bat Signal Button -->
+<div class="bat-signal" onclick="showEmergencyOptions()" title="Señal de Batman - Acciones de Emergencia">
+    <span class="bat-logo" style="width: 40px; height: 40px;"></span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Simulated data for demonstration
+const currentTime = new Date().toLocaleTimeString('es-ES');
+document.querySelector('.lead').textContent = `Estado del sistema a las ${currentTime}`;
+
+// Initialize charts
+const ctx1 = document.getElementById('diskChart').getContext('2d');
+const diskChart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+        datasets: [{
+            label: 'Uso de Disco (%)',
+            data: [65, 67, 68, 66, 70, 72, 71],
+            borderColor: '#FFD700',
+            backgroundColor: 'rgba(255, 215, 0, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#e0e0e0' }
+            }
+        },
+        scales: {
+            y: {
+                ticks: { color: '#999' },
+                grid: { color: '#333' }
+            },
+            x: {
+                ticks: { color: '#999' },
+                grid: { color: '#333' }
+            }
+        }
+    }
+});
+
+const ctx2 = document.getElementById('tasksChart').getContext('2d');
+const tasksChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['Análisis', 'Optimización', 'Seguridad', 'Mantenimiento'],
+        datasets: [{
+            data: [30, 25, 20, 25],
+            backgroundColor: [
+                '#FFD700',
+                '#FFA500',
+                '#dc2626',
+                '#10b981'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#e0e0e0' }
+            }
+        }
+    }
+});
+
+// Quick Actions
+function runAnalysis() {
+    if (confirm('¿Ejecutar análisis completo del sistema?')) {
+        fetch('/api/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'analyze' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Análisis iniciado. Revisa los reportes en unos minutos.');
+        });
+    }
+}
+
+function runOptimization() {
+    if (confirm('¿Ejecutar optimizaciones seguras?')) {
+        fetch('/api/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'optimize' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Optimización iniciada.');
+        });
+    }
+}
+
+function generateReport() {
+    window.location.href = '/reports';
+}
+
+function runTest() {
+    if (confirm('¿Ejecutar prueba de configuración?')) {
+        fetch('/api/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'all' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Prueba completada. Estado: ' + data.status);
+        });
+    }
+}
+
+function runNow() {
+    if (confirm('¿Ejecutar Batman Enhanced ahora mismo?')) {
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading-spinner"></span> Ejecutando...';
+        btn.disabled = true;
+        
+        fetch('/api/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'full' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.innerHTML = '<i class="fas fa-play"></i> Ejecutar Ahora';
+            btn.disabled = false;
+            alert('Batman Enhanced está trabajando. Los resultados estarán listos pronto.');
+        });
+    }
+}
+
+function showEmergencyOptions() {
+    const options = [
+        '🚨 Detener todas las tareas',
+        '🔍 Análisis de emergencia',
+        '📊 Generar reporte inmediato',
+        '🛡️ Auditoría de seguridad completa'
+    ];
+    
+    const choice = prompt('Señal de Batman activada. ¿Qué necesitas?\n\n' + options.join('\n'));
+    if (choice) {
+        alert('Ejecutando: ' + choice);
+    }
+}
+
+// Auto-refresh stats every 30 seconds
+setInterval(() => {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update stats cards
+            document.querySelector('.stat-value').textContent = data.tasks_total;
+            // Update other stats...
+        });
+}, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Tareas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .task-filters {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .task-card {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        position: relative;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+
+    .task-card.priority-1 {
+        border-left-color: var(--batman-red);
+    }
+
+    .task-card.priority-2 {
+        border-left-color: var(--batman-yellow);
+    }
+
+    .task-card.priority-3 {
+        border-left-color: var(--batman-blue);
+    }
+
+    .task-card.priority-4 {
+        border-left-color: var(--batman-green);
+    }
+
+    .task-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+    }
+
+    .task-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+        margin: 0;
+    }
+
+    .task-type {
+        display: inline-block;
+        padding: 4px 12px;
+        background: var(--batman-dark);
+        border-radius: 20px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--batman-yellow);
+    }
+
+    .task-content {
+        background: var(--batman-black);
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .task-actions .btn {
+        padding: 5px 15px;
+        font-size: 14px;
+    }
+
+    .task-meta {
+        display: flex;
+        gap: 20px;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .task-meta i {
+        color: var(--batman-yellow);
+        margin-right: 5px;
+    }
+
+    .task-form-modal {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 30px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .task-builder {
+        background: var(--batman-dark);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .code-editor {
+        background: var(--batman-black);
+        border: 1px solid var(--batman-gray);
+        border-radius: 5px;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        min-height: 150px;
+        color: #e0e0e0;
+        resize: vertical;
+    }
+
+    .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .priority-badge.critical {
+        background: var(--batman-red);
+        color: white;
+    }
+
+    .priority-badge.high {
+        background: var(--batman-yellow);
+        color: var(--batman-black);
+    }
+
+    .priority-badge.medium {
+        background: var(--batman-blue);
+        color: white;
+    }
+
+    .priority-badge.low {
+        background: var(--batman-green);
+        color: white;
+    }
+
+    .task-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-box {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-box h3 {
+        font-size: 32px;
+        font-family: 'Bebas Neue', cursive;
+        color: var(--batman-yellow);
+        margin: 0;
+    }
+
+    .stat-box p {
+        margin: 0;
+        color: #999;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        color: var(--batman-gray);
+        margin-bottom: 20px;
+    }
+
+    .task-template {
+        background: var(--batman-dark);
+        border: 2px dashed var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .task-template:hover {
+        border-color: var(--batman-yellow);
+        background: rgba(255, 215, 0, 0.05);
+    }
+
+    .filter-tag {
+        display: inline-block;
+        padding: 5px 15px;
+        background: var(--batman-dark);
+        border: 1px solid var(--batman-gray);
+        border-radius: 20px;
+        margin: 2px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-tag.active {
+        background: var(--batman-yellow);
+        color: var(--batman-black);
+        border-color: var(--batman-yellow);
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--batman-yellow);
+    }
+
+    .search-box input {
+        padding-left: 45px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-4 fade-in-up">
+                        <span class="bat-logo"></span>
+                        Gestión de Tareas
+                    </h1>
+                    <p class="lead">Configura las misiones nocturnas de Batman</p>
+                </div>
+                <div>
+                    <button class="btn btn-batman" onclick="showNewTaskModal()">
+                        <i class="fas fa-plus"></i> Nueva Tarea
+                    </button>
+                    <button class="btn btn-batman-secondary" onclick="importTasks()">
+                        <i class="fas fa-file-import"></i> Importar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Stats -->
+    <div class="task-stats fade-in-up">
+        <div class="stat-box">
+            <h3>{{ tasks | length }}</h3>
+            <p>Tareas Totales</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ tasks | selectattr('status', 'equalto', 'pending') | list | length }}</h3>
+            <p>Pendientes</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ tasks | selectattr('status', 'equalto', 'running') | list | length }}</h3>
+            <p>En Ejecución</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ tasks | selectattr('status', 'equalto', 'completed') | list | length }}</h3>
+            <p>Completadas</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="task-filters fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="search-tasks" 
+                           placeholder="Buscar tareas...">
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="me-2">Filtrar por:</span>
+                    <span class="filter-tag active" data-filter="all">Todas</span>
+                    <span class="filter-tag" data-filter="command">Comandos</span>
+                    <span class="filter-tag" data-filter="analysis">Análisis</span>
+                    <span class="filter-tag" data-filter="maintenance">Mantenimiento</span>
+                    <span class="filter-tag" data-filter="security">Seguridad</span>
+                    <span class="mx-3">|</span>
+                    <span class="filter-tag" data-filter="priority-1">🚨 Críticas</span>
+                    <span class="filter-tag" data-filter="priority-2">⚠️ Altas</span>
+                    <span class="filter-tag" data-filter="priority-3">📢 Medias</span>
+                    <span class="filter-tag" data-filter="priority-4">ℹ️ Bajas</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Templates -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="fas fa-clipboard-list"></i> Plantillas Rápidas</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="task-template" onclick="createFromTemplate('cleanup')">
+                        <h5><i class="fas fa-broom"></i> Limpieza de Sistema</h5>
+                        <p class="mb-0 small">Eliminar archivos temporales y logs antiguos</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="task-template" onclick="createFromTemplate('security')">
+                        <h5><i class="fas fa-shield-alt"></i> Auditoría de Seguridad</h5>
+                        <p class="mb-0 small">Verificar permisos y configuraciones</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="task-template" onclick="createFromTemplate('backup')">
+                        <h5><i class="fas fa-database"></i> Respaldo de Datos</h5>
+                        <p class="mb-0 small">Crear copias de seguridad automáticas</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="task-template" onclick="createFromTemplate('monitor')">
+                        <h5><i class="fas fa-chart-line"></i> Monitoreo de Recursos</h5>
+                        <p class="mb-0 small">Verificar uso de CPU, memoria y disco</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task List -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="fas fa-tasks"></i> Tareas Configuradas</h3>
+            <div id="task-list">
+                {% if tasks %}
+                    {% for task in tasks %}
+                    <div class="task-card priority-{{ task.priority }} fade-in-up" 
+                         data-type="{{ task.type }}" data-priority="{{ task.priority }}">
+                        <div class="task-header">
+                            <div>
+                                <h4 class="task-title">{{ task.title }}</h4>
+                                <span class="task-type">{{ task.type }}</span>
+                                {% if task.priority == 1 %}
+                                    <span class="priority-badge critical ms-2">🚨 Crítica</span>
+                                {% elif task.priority == 2 %}
+                                    <span class="priority-badge high ms-2">⚠️ Alta</span>
+                                {% elif task.priority == 3 %}
+                                    <span class="priority-badge medium ms-2">📢 Media</span>
+                                {% else %}
+                                    <span class="priority-badge low ms-2">ℹ️ Baja</span>
+                                {% endif %}
+                            </div>
+                            <div class="task-actions">
+                                <button class="btn btn-sm btn-batman-secondary" onclick="editTask('{{ task.id }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-batman-secondary" onclick="runTask('{{ task.id }}')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteTask('{{ task.id }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="task-content">
+                            {% if task.type == 'command' or task.type == 'maintenance' %}
+                                {{ task.command }}
+                            {% else %}
+                                {{ task.prompt }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="task-meta">
+                            <span><i class="fas fa-clock"></i> {{ task.schedule or 'Manual' }}</span>
+                            <span><i class="fas fa-folder"></i> {{ task.file }}</span>
+                            {% if task.last_run %}
+                            <span><i class="fas fa-check"></i> Última ejecución: {{ task.last_run }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <h3>No hay tareas configuradas</h3>
+                        <p>Crea tu primera tarea o importa un archivo de configuración</p>
+                        <button class="btn btn-batman mt-3" onclick="showNewTaskModal()">
+                            <i class="fas fa-plus"></i> Crear Primera Tarea
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Task Modal -->
+<div class="modal fade" id="newTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background: var(--batman-dark); border: 2px solid var(--batman-yellow);">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span class="bat-logo" style="width: 30px; height: 30px;"></span>
+                    Nueva Tarea
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="new-task-form">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la Tarea</label>
+                        <input type="text" class="form-control" id="task_name" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select" id="task_type">
+                                <option value="command">Comando del sistema</option>
+                                <option value="analysis">Análisis con Claude</option>
+                                <option value="maintenance">Mantenimiento</option>
+                                <option value="security">Seguridad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prioridad</label>
+                            <select class="form-select" id="task_priority">
+                                <option value="1">🚨 Crítica</option>
+                                <option value="2">⚠️ Alta</option>
+                                <option value="3" selected>📢 Media</option>
+                                <option value="4">ℹ️ Baja</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="command_input">
+                        <label class="form-label">Comando a Ejecutar</label>
+                        <textarea class="form-control code-editor" id="task_command" rows="5" 
+                                  placeholder="#!/bin/bash&#10;# Tu comando aquí"></textarea>
+                    </div>
+                    
+                    <div class="mb-3" id="prompt_input" style="display: none;">
+                        <label class="form-label">Prompt para Claude</label>
+                        <textarea class="form-control code-editor" id="task_prompt" rows="5" 
+                                  placeholder="Describe lo que quieres que Claude analice..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Programación (Opcional)</label>
+                        <select class="form-select" id="task_schedule">
+                            <option value="">Manual</option>
+                            <option value="daily">Diaria</option>
+                            <option value="weekly">Semanal</option>
+                            <option value="monthly">Mensual</option>
+                            <option value="custom">Personalizada (cron)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="cron_input" style="display: none;">
+                        <label class="form-label">Expresión Cron</label>
+                        <input type="text" class="form-control" id="task_cron" 
+                               placeholder="0 3 * * *">
+                        <small class="text-muted">Formato: minuto hora día mes día_semana</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Dependencias (IDs separados por comas)</label>
+                        <input type="text" class="form-control" id="task_dependencies" 
+                               placeholder="task_1, task_2">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-batman" onclick="saveNewTask()">
+                    <i class="fas fa-save"></i> Guardar Tarea
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--batman-dark); border: 2px solid var(--batman-yellow);">
+            <div class="modal-header">
+                <h5 class="modal-title">Importar Tareas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="file-upload-area text-center p-5" id="import-area">
+                    <i class="fas fa-file-upload fa-3x mb-3" style="color: var(--batman-yellow);"></i>
+                    <p>Arrastra archivos YAML aquí o haz clic para seleccionar</p>
+                    <input type="file" id="import-file" accept=".yaml,.yml" style="display: none;" multiple>
+                </div>
+                <div id="import-preview" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-batman" onclick="confirmImport()">
+                    <i class="fas fa-upload"></i> Importar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize modals
+const newTaskModal = new bootstrap.Modal(document.getElementById('newTaskModal'));
+const importModal = new bootstrap.Modal(document.getElementById('importModal'));
+
+// Task type change handler
+document.getElementById('task_type').addEventListener('change', function() {
+    const isCommand = this.value === 'command' || this.value === 'maintenance';
+    document.getElementById('command_input').style.display = isCommand ? 'block' : 'none';
+    document.getElementById('prompt_input').style.display = isCommand ? 'none' : 'block';
+});
+
+// Schedule type change handler
+document.getElementById('task_schedule').addEventListener('change', function() {
+    document.getElementById('cron_input').style.display = 
+        this.value === 'custom' ? 'block' : 'none';
+});
+
+// Filter functionality
+document.querySelectorAll('.filter-tag').forEach(tag => {
+    tag.addEventListener('click', function() {
+        // Remove active from all
+        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        filterTasks(filter);
+    });
+});
+
+function filterTasks(filter) {
+    const tasks = document.querySelectorAll('.task-card');
+    tasks.forEach(task => {
+        if (filter === 'all') {
+            task.style.display = 'block';
+        } else if (filter.startsWith('priority-')) {
+            const priority = filter.split('-')[1];
+            task.style.display = task.dataset.priority === priority ? 'block' : 'none';
+        } else {
+            task.style.display = task.dataset.type === filter ? 'block' : 'none';
+        }
+    });
+}
+
+// Search functionality
+document.getElementById('search-tasks').addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const tasks = document.querySelectorAll('.task-card');
+    
+    tasks.forEach(task => {
+        const title = task.querySelector('.task-title').textContent.toLowerCase();
+        const content = task.querySelector('.task-content').textContent.toLowerCase();
+        const match = title.includes(query) || content.includes(query);
+        task.style.display = match ? 'block' : 'none';
+    });
+});
+
+// Task management functions
+function showNewTaskModal() {
+    document.getElementById('new-task-form').reset();
+    newTaskModal.show();
+}
+
+function saveNewTask() {
+    const task = {
+        id: `task_${Date.now()}`,
+        title: document.getElementById('task_name').value,
+        type: document.getElementById('task_type').value,
+        priority: parseInt(document.getElementById('task_priority').value),
+        command: document.getElementById('task_command').value,
+        prompt: document.getElementById('task_prompt').value,
+        schedule: document.getElementById('task_schedule').value,
+        cron: document.getElementById('task_cron').value,
+        dependencies: document.getElementById('task_dependencies').value.split(',').map(d => d.trim()).filter(d => d)
+    };
+    
+    fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            newTaskModal.hide();
+            location.reload();
+        }
+    });
+}
+
+function editTask(taskId) {
+    // Load task data and show modal
+    console.log('Edit task:', taskId);
+}
+
+function runTask(taskId) {
+    if (confirm('¿Ejecutar esta tarea ahora?')) {
+        fetch(`/api/tasks/${taskId}/run`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Tarea iniciada. Revisa los logs para ver el progreso.');
+        });
+    }
+}
+
+function deleteTask(taskId) {
+    if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+        fetch(`/api/tasks?id=${taskId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            }
+        });
+    }
+}
+
+// Template creation
+function createFromTemplate(template) {
+    const templates = {
+        cleanup: {
+            name: 'Limpieza de Sistema',
+            type: 'maintenance',
+            command: `#!/bin/bash
+# Limpieza de archivos temporales
+find /tmp -type f -atime +7 -delete
+find /var/tmp -type f -atime +7 -delete
+
+# Limpiar logs antiguos
+find /var/log -name "*.log" -mtime +30 -exec gzip {} \\;
+find /var/log -name "*.gz" -mtime +90 -delete
+
+# Reportar espacio liberado
+df -h /`,
+            priority: 3
+        },
+        security: {
+            name: 'Auditoría de Seguridad',
+            type: 'security',
+            command: `#!/bin/bash
+# Verificar permisos de archivos sensibles
+find /etc -type f -perm /022 -ls
+
+# Verificar puertos abiertos
+ss -tunlp
+
+# Verificar usuarios sin contraseña
+awk -F: '($2 == "") {print $1}' /etc/shadow`,
+            priority: 2
+        },
+        backup: {
+            name: 'Respaldo de Configuración',
+            type: 'maintenance',
+            command: `#!/bin/bash
+# Crear directorio de respaldo
+BACKUP_DIR="/backup/$(date +%Y%m%d)"
+mkdir -p "$BACKUP_DIR"
+
+# Respaldar archivos de configuración
+tar czf "$BACKUP_DIR/etc.tar.gz" /etc
+tar czf "$BACKUP_DIR/home.tar.gz" /home --exclude='*.cache'
+
+# Verificar integridad
+cd "$BACKUP_DIR" && sha256sum *.tar.gz > checksums.txt`,
+            priority: 2
+        },
+        monitor: {
+            name: 'Monitoreo de Recursos',
+            type: 'analysis',
+            prompt: `Analiza el estado actual del sistema:
+- Uso de CPU, memoria y disco
+- Procesos que consumen más recursos
+- Servicios críticos detenidos
+- Anomalías en el rendimiento
+
+Genera recomendaciones para optimizar el sistema.`,
+            priority: 3
+        }
+    };
+    
+    const template_data = templates[template];
+    if (template_data) {
+        document.getElementById('task_name').value = template_data.name;
+        document.getElementById('task_type').value = template_data.type;
+        document.getElementById('task_priority').value = template_data.priority;
+        
+        if (template_data.command) {
+            document.getElementById('task_command').value = template_data.command;
+        } else {
+            document.getElementById('task_prompt').value = template_data.prompt;
+        }
+        
+        // Trigger change event to update UI
+        document.getElementById('task_type').dispatchEvent(new Event('change'));
+        
+        showNewTaskModal();
+    }
+}
+
+// Import functionality
+function importTasks() {
+    importModal.show();
+}
+
+// File upload
+const importArea = document.getElementById('import-area');
+const importFile = document.getElementById('import-file');
+
+importArea.addEventListener('click', () => importFile.click());
+importArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    importArea.style.background = 'rgba(255, 215, 0, 0.1)';
+});
+importArea.addEventListener('dragleave', () => {
+    importArea.style.background = '';
+});
+importArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    importArea.style.background = '';
+    handleFiles(e.dataTransfer.files);
+});
+
+importFile.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+});
+
+function handleFiles(files) {
+    const preview = document.getElementById('import-preview');
+    preview.innerHTML = '<h5>Archivos seleccionados:</h5>';
+    
+    Array.from(files).forEach(file => {
+        preview.innerHTML += `<p><i class="fas fa-file"></i> ${file.name}</p>`;
+    });
+}
+
+function confirmImport() {
+    const files = importFile.files;
+    if (files.length === 0) return;
+    
+    const formData = new FormData();
+    Array.from(files).forEach(file => {
+        formData.append('files', file);
+    });
+    formData.append('type', 'task');
+    
+    fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            importModal.hide();
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""
+Batman View - Visualizador seguro que lee datos del monitor sin interferir con Claude
+Solo lee archivos, nunca interfiere con terminal
+"""
+
+import json
+import time
+import sys
+from datetime import datetime
+import subprocess
+
+def clear_screen():
+    """Limpia pantalla de forma segura."""
+    subprocess.run(['clear'], check=False)
+
+def read_status():
+    """Lee el status del monitor."""
+    try:
+        with open('/tmp/batman_status.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
+    except Exception as e:
+        return {'error': str(e)}
+
+def format_status_compact(data):
+    """Formatea status en modo compacto."""
+    if not data or 'error' in data:
+        return "❌ No hay datos del monitor (¿está corriendo batman-monitor-safe --daemon?)"
+    
+    summary = data.get('summary', {})
+    timestamp = data.get('timestamp', '')
+    
+    # Parse timestamp
+    try:
+        dt = datetime.fromisoformat(timestamp)
+        time_str = dt.strftime('%H:%M:%S')
+    except:
+        time_str = 'Unknown'
+    
+    lines = []
+    lines.append(f"🦇 [{time_str}] Agents:{summary.get('total_agents', 0)} CPU:{summary.get('cpu_usage', 0):.1f}% RAM:{summary.get('memory_usage', 0):.1f}% Changes:{summary.get('recent_changes', 0)}")
+    
+    # Mostrar agentes si los hay
+    agents = data.get('agents', {})
+    if agents:
+        agent_list = []
+        for pid, agent in agents.items():
+            agent_list.append(f"{agent['emoji']}{agent['type'][:3]}")
+        lines.append(f"   Active: {' '.join(agent_list)}")
+    
+    return '\n'.join(lines)
+
+def format_status_detailed(data):
+    """Formatea status en modo detallado."""
+    if not data or 'error' in data:
+        return "❌ Monitor no disponible. Ejecuta: batman-monitor-safe --daemon"
+    
+    lines = []
+    lines.append("🦇 BATMAN INCORPORATED STATUS")
+    lines.append("=" * 50)
+    
+    # Timestamp
+    timestamp = data.get('timestamp', '')
+    try:
+        dt = datetime.fromisoformat(timestamp)
+        time_str = dt.strftime('%Y-%m-%d %H:%M:%S')
+    except:
+        time_str = 'Unknown'
+    lines.append(f"⏰ Last Update: {time_str}")
+    
+    # Agentes
+    agents = data.get('agents', {})
+    lines.append(f"\n👥 AGENTS ({len(agents)})")
+    if agents:
+        for pid, agent in agents.items():
+            lines.append(f"  {agent['emoji']} {agent['type']:10} PID:{pid} CPU:{agent['cpu']:.1f}% RAM:{agent['memory']:.1f}%")
+    else:
+        lines.append("  No active agents")
+    
+    # Sistema
+    system = data.get('system', {})
+    lines.append(f"\n📊 SYSTEM")
+    lines.append(f"  CPU: {system.get('cpu', 0):.1f}%")
+    lines.append(f"  RAM: {system.get('memory', 0):.1f}%")
+    lines.append(f"  Load: {system.get('load', 0):.2f}")
+    
+    # Archivos recientes
+    files = data.get('files', [])
+    if files:
+        lines.append(f"\n📁 RECENT FILES ({len(files)})")
+        for file_info in files[:5]:
+            lines.append(f"  [{file_info['time']}] {file_info['path']}")
+    
+    return '\n'.join(lines)
+
+def watch_mode():
+    """Modo watch - actualiza cada pocos segundos."""
+    print("🦇 Batman Watch Mode - Presiona Ctrl+C para salir")
+    print("Actualizando cada 3 segundos...")
+    print()
+    
+    try:
+        while True:
+            clear_screen()
+            data = read_status()
+            print(format_status_detailed(data))
+            print("\n🔄 Actualizando... (Ctrl+C para salir)")
+            time.sleep(3)
+    except KeyboardInterrupt:
+        print("\n👋 Watch mode detenido")
+
+def tail_mode():
+    """Modo tail - sigue el log."""
+    print("🦇 Batman Log Tail - Presiona Ctrl+C para salir")
+    try:
+        subprocess.run(['tail', '-f', '/tmp/batman_monitor.log'])
+    except KeyboardInterrupt:
+        print("\n👋 Tail mode detenido")
+    except FileNotFoundError:
+        print("❌ Log file no encontrado. ¿Está corriendo el monitor?")
+
+def main():
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+        if cmd == '--watch':
+            watch_mode()
+        elif cmd == '--tail':
+            tail_mode()
+        elif cmd == '--compact':
+            data = read_status()
+            print(format_status_compact(data))
+        elif cmd == '--json':
+            data = read_status()
+            if data:
+                print(json.dumps(data, indent=2))
+            else:
+                print('{"error": "No data available"}')
+        elif cmd == '--help':
+            print("🦇 Batman View - Visualizador seguro de monitor")
+            print("Uso:")
+            print("  batman-view              # Status detallado una vez")
+            print("  batman-view --compact    # Status compacto una línea")
+            print("  batman-view --watch      # Modo watch (actualiza cada 3s)")
+            print("  batman-view --tail       # Sigue el log en tiempo real")
+            print("  batman-view --json       # Output en JSON")
+            print("  batman-view --help       # Esta ayuda")
+            print()
+            print("Nota: Requiere batman-monitor-safe --daemon corriendo")
+        else:
+            print(f"❌ Comando desconocido: {cmd}")
+            print("Usa --help para ver opciones disponibles")
+    else:
+        # Modo por defecto - status detallado
+        data = read_status()
+        print(format_status_detailed(data))
+
+if __name__ == "__main__":
+    main()

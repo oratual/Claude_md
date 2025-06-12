@@ -1,0 +1,48 @@
+#!/bin/bash
+# Batman Multi-Instance Launcher
+# Permite ejecutar múltiples instancias de Batman sin conflictos
+
+# Obtener instance ID del primer parámetro o generar uno aleatorio
+INSTANCE_ID="${1:-instance-$$-$RANDOM}"
+shift  # Remover el instance ID de los argumentos
+
+# Colores
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🦇 Batman Multi-Instance: ${YELLOW}$INSTANCE_ID${NC}"
+
+# Crear directorio temporal único para esta instancia
+INSTANCE_DIR="/tmp/batman-$INSTANCE_ID"
+mkdir -p "$INSTANCE_DIR"
+
+# Exportar variables de entorno para aislar archivos
+export BATMAN_INSTANCE_ID="$INSTANCE_ID"
+export BATMAN_LOG_DIR="$HOME/.glados/batman-incorporated/instances/$INSTANCE_ID/logs"
+export BATMAN_TEMP_DIR="$INSTANCE_DIR"
+export BATMAN_STATUS_FILE="$INSTANCE_DIR/status.json"
+export BATMAN_MONITOR_LOG="$INSTANCE_DIR/monitor.log"
+export BATMAN_MONITOR_PID="$INSTANCE_DIR/monitor.pid"
+export BATMAN_WORKTREE_BASE="$INSTANCE_DIR/worktrees"
+
+# Crear directorios necesarios
+mkdir -p "$BATMAN_LOG_DIR"
+mkdir -p "$BATMAN_WORKTREE_BASE"
+
+# Información de la instancia
+echo -e "${GREEN}Instance Configuration:${NC}"
+echo "  ID: $INSTANCE_ID"
+echo "  Logs: $BATMAN_LOG_DIR"
+echo "  Temp: $BATMAN_TEMP_DIR"
+echo "  Worktrees: $BATMAN_WORKTREE_BASE"
+echo ""
+
+# Ejecutar Batman con los argumentos restantes
+cd "$(dirname "$0")"
+python3 batman.py "$@"
+
+# Limpiar al salir (opcional)
+# echo -e "${YELLOW}Limpiando archivos temporales...${NC}"
+# rm -rf "$INSTANCE_DIR"

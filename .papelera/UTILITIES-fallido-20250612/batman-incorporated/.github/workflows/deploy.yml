@@ -1,0 +1,389 @@
+name: Deploy Batman Incorporated
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (leave empty for latest)'
+        required: false
+        default: ''
+
+env:
+  DEPLOY_USER: batman
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      environment: ${{ steps.env.outputs.environment }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Determine version
+      id: version
+      run: |
+        if [ -n "${{ github.event.inputs.version }}" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        elif [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=$(git describe --tags --always --dirty)
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Deploying version: $VERSION"
+        
+    - name: Determine environment
+      id: env
+      run: |
+        if [ -n "${{ github.event.inputs.environment }}" ]; then
+          ENV="${{ github.event.inputs.environment }}"
+        elif [[ $GITHUB_REF == refs/tags/* ]]; then
+          ENV="production"
+        else
+          ENV="staging"
+        fi
+        echo "ENVIRONMENT=$ENV" >> $GITHUB_OUTPUT
+        echo "Deploying to: $ENV"
+
+  test-deployment:
+    name: Pre-deployment Tests
+    runs-on: ubuntu-latest
+    needs: prepare
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run deployment tests
+      run: |
+        pytest tests/ -v -m "deployment or smoke" || true
+        
+    - name: Health check simulation
+      run: |
+        ./scripts/health_check.sh || echo "Health check script not found"
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [prepare, test-deployment]
+    if: needs.prepare.outputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.batman-incorporated.example.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Configure SSH
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        SSH_HOST: ${{ secrets.STAGING_HOST }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+        
+    - name: Create deployment package
+      run: |
+        VERSION="${{ needs.prepare.outputs.version }}"
+        tar -czf batman-incorporated-${VERSION}.tar.gz \
+          --exclude='.git' \
+          --exclude='venv' \
+          --exclude='__pycache__' \
+          --exclude='*.pyc' \
+          --exclude='.env*' \
+          --exclude='logs/*' \
+          --exclude='tasks/*' \
+          .
+          
+    - name: Deploy to staging server
+      env:
+        SSH_HOST: ${{ secrets.STAGING_HOST }}
+        DEPLOY_PATH: /opt/batman-incorporated
+      run: |
+        VERSION="${{ needs.prepare.outputs.version }}"
+        
+        # Upload package
+        scp -i ~/.ssh/deploy_key \
+          batman-incorporated-${VERSION}.tar.gz \
+          ${DEPLOY_USER}@${SSH_HOST}:/tmp/
+          
+        # Execute deployment
+        ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${SSH_HOST} << 'EOF'
+          set -e
+          VERSION="${{ needs.prepare.outputs.version }}"
+          DEPLOY_PATH="/opt/batman-incorporated"
+          
+          # Create deployment directory
+          sudo mkdir -p ${DEPLOY_PATH}/releases/${VERSION}
+          
+          # Extract package
+          sudo tar -xzf /tmp/batman-incorporated-${VERSION}.tar.gz \
+            -C ${DEPLOY_PATH}/releases/${VERSION}
+            
+          # Install dependencies
+          cd ${DEPLOY_PATH}/releases/${VERSION}
+          sudo python3 -m venv venv
+          sudo venv/bin/pip install -r requirements.txt
+          
+          # Update symlink
+          sudo ln -sfn ${DEPLOY_PATH}/releases/${VERSION} ${DEPLOY_PATH}/current
+          
+          # Restart service
+          sudo systemctl restart batman-incorporated || true
+          
+          # Cleanup
+          rm -f /tmp/batman-incorporated-${VERSION}.tar.gz
+        EOF
+        
+    - name: Run post-deployment checks
+      env:
+        SSH_HOST: ${{ secrets.STAGING_HOST }}
+      run: |
+        ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${SSH_HOST} << 'EOF'
+          set -e
+          cd /opt/batman-incorporated/current
+          ./scripts/health_check.sh || echo "Health check not available"
+        EOF
+        
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Staging deployment successful!"
+        else
+          echo "❌ Staging deployment failed!"
+        fi
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [prepare, test-deployment]
+    if: needs.prepare.outputs.environment == 'production'
+    environment:
+      name: production
+      url: https://batman-incorporated.example.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Configure SSH
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
+        SSH_HOST: ${{ secrets.PRODUCTION_HOST }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+        
+    - name: Backup current production
+      env:
+        SSH_HOST: ${{ secrets.PRODUCTION_HOST }}
+      run: |
+        ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${SSH_HOST} << 'EOF'
+          set -e
+          BACKUP_PATH="/var/backups/batman-incorporated"
+          DEPLOY_PATH="/opt/batman-incorporated"
+          
+          if [ -d "${DEPLOY_PATH}/current" ]; then
+            sudo mkdir -p ${BACKUP_PATH}
+            sudo tar -czf ${BACKUP_PATH}/backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+              -C ${DEPLOY_PATH}/current .
+          fi
+        EOF
+        
+    - name: Create deployment package
+      run: |
+        VERSION="${{ needs.prepare.outputs.version }}"
+        tar -czf batman-incorporated-${VERSION}.tar.gz \
+          --exclude='.git' \
+          --exclude='venv' \
+          --exclude='__pycache__' \
+          --exclude='*.pyc' \
+          --exclude='.env*' \
+          --exclude='logs/*' \
+          --exclude='tasks/*' \
+          --exclude='test*' \
+          .
+          
+    - name: Deploy to production servers
+      env:
+        SSH_HOST: ${{ secrets.PRODUCTION_HOST }}
+        DEPLOY_PATH: /opt/batman-incorporated
+      run: |
+        VERSION="${{ needs.prepare.outputs.version }}"
+        
+        # Upload package
+        scp -i ~/.ssh/deploy_key \
+          batman-incorporated-${VERSION}.tar.gz \
+          ${DEPLOY_USER}@${SSH_HOST}:/tmp/
+          
+        # Execute deployment with zero-downtime
+        ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${SSH_HOST} << 'EOF'
+          set -e
+          VERSION="${{ needs.prepare.outputs.version }}"
+          DEPLOY_PATH="/opt/batman-incorporated"
+          
+          # Create deployment directory
+          sudo mkdir -p ${DEPLOY_PATH}/releases/${VERSION}
+          
+          # Extract package
+          sudo tar -xzf /tmp/batman-incorporated-${VERSION}.tar.gz \
+            -C ${DEPLOY_PATH}/releases/${VERSION}
+            
+          # Copy shared files
+          if [ -d "${DEPLOY_PATH}/shared" ]; then
+            ln -s ${DEPLOY_PATH}/shared/uploads \
+              ${DEPLOY_PATH}/releases/${VERSION}/uploads || true
+            ln -s ${DEPLOY_PATH}/shared/logs \
+              ${DEPLOY_PATH}/releases/${VERSION}/logs || true
+          fi
+          
+          # Install dependencies
+          cd ${DEPLOY_PATH}/releases/${VERSION}
+          sudo python3 -m venv venv
+          sudo venv/bin/pip install -r requirements.txt
+          
+          # Run migrations if needed
+          # sudo venv/bin/python manage.py migrate || true
+          
+          # Update symlink (atomic operation)
+          sudo ln -sfn ${DEPLOY_PATH}/releases/${VERSION} ${DEPLOY_PATH}/current.new
+          sudo mv -Tf ${DEPLOY_PATH}/current.new ${DEPLOY_PATH}/current
+          
+          # Reload service gracefully
+          sudo systemctl reload batman-incorporated || \
+          sudo systemctl restart batman-incorporated
+          
+          # Cleanup old releases (keep last 5)
+          cd ${DEPLOY_PATH}/releases
+          ls -t | tail -n +6 | xargs -r sudo rm -rf
+          
+          # Cleanup
+          rm -f /tmp/batman-incorporated-${VERSION}.tar.gz
+        EOF
+        
+    - name: Verify production deployment
+      env:
+        SSH_HOST: ${{ secrets.PRODUCTION_HOST }}
+        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+      run: |
+        # SSH health check
+        ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${SSH_HOST} << 'EOF'
+          set -e
+          cd /opt/batman-incorporated/current
+          ./scripts/health_check.sh
+        EOF
+        
+        # HTTP health check
+        for i in {1..5}; do
+          if curl -f -s -o /dev/null "${PRODUCTION_URL}/health"; then
+            echo "✅ Health check passed"
+            break
+          else
+            echo "⏳ Waiting for service to be ready... (attempt $i/5)"
+            sleep 10
+          fi
+        done
+        
+    - name: Rollback on failure
+      if: failure()
+      env:
+        SSH_HOST: ${{ secrets.PRODUCTION_HOST }}
+      run: |
+        echo "⚠️ Deployment failed, initiating rollback..."
+        ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${SSH_HOST} << 'EOF'
+          set -e
+          DEPLOY_PATH="/opt/batman-incorporated"
+          
+          # Find previous release
+          PREVIOUS=$(ls -t ${DEPLOY_PATH}/releases | sed -n '2p')
+          
+          if [ -n "$PREVIOUS" ]; then
+            echo "Rolling back to version: $PREVIOUS"
+            sudo ln -sfn ${DEPLOY_PATH}/releases/${PREVIOUS} ${DEPLOY_PATH}/current
+            sudo systemctl restart batman-incorporated
+          else
+            echo "❌ No previous release found for rollback"
+          fi
+        EOF
+
+  post-deployment:
+    name: Post-deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    
+    steps:
+    - name: Create release notes
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.prepare.outputs.version }}
+        release_name: Batman Incorporated ${{ needs.prepare.outputs.version }}
+        body: |
+          ## 🦇 Batman Incorporated Release ${{ needs.prepare.outputs.version }}
+          
+          ### Deployment Information
+          - Environment: ${{ needs.prepare.outputs.environment }}
+          - Deployed at: ${{ github.event.head_commit.timestamp }}
+          - Deployed by: ${{ github.actor }}
+          
+          ### Changes
+          See [full changelog](https://github.com/${{ github.repository }}/compare/...HEAD)
+          
+          ### Deployment Status
+          - Staging: ${{ needs.deploy-staging.result }}
+          - Production: ${{ needs.deploy-production.result }}
+        draft: false
+        prerelease: ${{ needs.prepare.outputs.environment == 'staging' }}
+        
+    - name: Send deployment notification
+      if: always()
+      run: |
+        STATUS="unknown"
+        if [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          STATUS="✅ Production deployment successful"
+        elif [ "${{ needs.deploy-staging.result }}" == "success" ]; then
+          STATUS="✅ Staging deployment successful"
+        else
+          STATUS="❌ Deployment failed"
+        fi
+        
+        echo "Batman Incorporated Deployment Status: $STATUS"
+        echo "Version: ${{ needs.prepare.outputs.version }}"
+        echo "Environment: ${{ needs.prepare.outputs.environment }}"

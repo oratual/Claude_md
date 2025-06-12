@@ -1,0 +1,40 @@
+{
+  "round_2": {
+    "oracle": {
+      "tasks": [
+        {
+          "id": "17-complete",
+          "title": "Completar tests restantes",
+          "files": ["tests/test_mcp_integration.py", "tests/test_arsenal.py", "tests/test_config.py"]
+        }
+      ]
+    },
+    "robin": {
+      "tasks": [
+        {
+          "id": "20",
+          "title": "GitHub Actions CI/CD",
+          "files": [".github/workflows/ci.yml", ".github/workflows/tests.yml", ".github/workflows/deploy.yml"]
+        }
+      ]
+    },
+    "lucius": {
+      "tasks": [
+        {
+          "id": "19-complete", 
+          "title": "Completar documentación",
+          "files": ["docs/API.md", "docs/EXAMPLES.md", "docs/ARCHITECTURE.md", "examples/basic_usage.py"]
+        }
+      ]
+    },
+    "batgirl": {
+      "tasks": [
+        {
+          "id": "21",
+          "title": "Crear UI web para monitoreo",
+          "files": ["web/index.html", "web/monitor.js", "web/styles.css"]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,71 @@
+#!/bin/bash
+# ⏰ ACTIVE NIGHT SUPERVISOR - Sistema que me mantiene activo hasta amanecer
+
+echo "⏰ ACTIVE NIGHT SUPERVISOR - Mantiene Claude activo hasta 06:00"
+
+# Hora objetivo: 06:00 (amanecer)
+target_hour=6
+current_hour=$(date +%H)
+
+# Función para verificar si es hora de parar
+is_dawn() {
+    current_hour=$(date +%H)
+    if [ $current_hour -ge 6 ] && [ $current_hour -lt 22 ]; then
+        return 0  # Es de día
+    else
+        return 1  # Es de noche
+    fi
+}
+
+# Función que genera preguntas para mantener conversación activa
+generate_status_question() {
+    questions=(
+        "¿Cómo va el progreso de DiskDominator?"
+        "¿Cuántos archivos se han modificado?"
+        "¿Los builds de Rust están funcionando?"
+        "¿Hay errores críticos pendientes?"
+        "¿Los commits automáticos están funcionando?"
+        "¿Qué hora es y cuánto falta para el amanecer?"
+        "¿Los procesos paralelos siguen activos?"
+        "¿Hay algún Batman cascade ejecutándose?"
+    )
+    echo "${questions[$((RANDOM % ${#questions[@]}))]}"
+}
+
+# Contador para variedad
+counter=0
+
+# Bucle principal hasta el amanecer
+while ! is_dawn; do
+    counter=$((counter + 1))
+    current_time=$(date)
+    
+    echo "🌙 SUPERVISOR ACTIVO - Ciclo $counter - $current_time"
+    echo "📊 Verificando estado operación nocturna..."
+    
+    # Cada 15 minutos: Reporte completo
+    if [ $((counter % 3)) -eq 0 ]; then
+        echo "📋 REPORTE COMPLETO CICLO $counter:"
+        echo "   🕐 Hora: $current_time"
+        echo "   ⏳ Hasta amanecer: ~$((6 - $(date +%H))) horas"
+        echo "   📁 Archivos modificados: $(cd /home/lauta/glados/DiskDominator && git status --porcelain | wc -l)"
+        echo "   🔄 Procesos night worker: $(procs night | wc -l)"
+        echo "   🦇 Procesos batman: $(procs batman | wc -l)"
+        
+        # Generar pregunta para mantener activo a Claude
+        question=$(generate_status_question)
+        echo "❓ PREGUNTA AUTOMÁTICA: $question"
+        echo "   (Esta pregunta mantiene la conversación activa)"
+    fi
+    
+    # Verificar procesos críticos
+    if ! pgrep -f "night" > /dev/null; then
+        echo "⚠️ Night workers no encontrados, puede necesitar restart"
+    fi
+    
+    # Esperar 5 minutos
+    sleep 300
+done
+
+echo "🌅 AMANECER DETECTADO - Supervisor nocturno completado"
+echo "🎉 Operación nocturna finalizada exitosamente a las $(date)"

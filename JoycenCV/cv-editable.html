@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joysen A. Bumanglag - CV</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        @media screen {
+            body {
+                margin: 0;
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                min-height: 100vh;
+            }
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #333;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .cv-container {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            background: white;
+            display: flex;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 26%;
+            background: #2c3e50;
+            color: white;
+            padding: 8px 10px;
+        }
+        
+        .photo-container {
+            width: 110px;
+            height: 140px;
+            margin: 0 auto 15px;
+            background: white;
+            padding: 2px;
+        }
+        
+        .photo {
+            width: 100%;
+            height: 100%;
+            background: url('face.png') no-repeat center;
+            background-size: cover;
+            background-position: center center;
+        }
+        
+        .sidebar h2 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            margin-top: 12px;
+            padding-bottom: 2px;
+            border-bottom: 1.5px solid white;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-section p {
+            margin-bottom: 2px;
+            font-size: 9px;
+            line-height: 1.2;
+        }
+        
+        .main-content {
+            width: 74%;
+            padding: 12px 15px;
+        }
+        
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            margin-top: 5px;
+            color: #2c3e50;
+        }
+        
+        .objective {
+            margin-bottom: 10px;
+            text-align: justify;
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            margin-top: 10px;
+            color: #2c3e50;
+            border-bottom: 1.5px solid #2c3e50;
+            padding-bottom: 2px;
+        }
+        
+        .job-entry {
+            margin-bottom: 10px;
+        }
+        
+        .job-title {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+        
+        .job-details {
+            font-size: 10px;
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+        
+        .job-description {
+            text-align: justify;
+            font-size: 9.5px;
+            line-height: 1.25;
+        }
+        
+        /* Para editar */
+        [contenteditable="true"] {
+            outline: none;
+            min-height: 20px;
+        }
+        
+        [contenteditable="true"]:hover {
+            background-color: rgba(255, 255, 0, 0.1);
+        }
+        
+        [contenteditable="true"]:focus {
+            background-color: rgba(255, 255, 0, 0.2);
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .cv-container {
+                box-shadow: none;
+            }
+            [contenteditable="true"]:hover,
+            [contenteditable="true"]:focus {
+                background-color: transparent;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-container">
+        <div class="sidebar">
+            <div class="photo-container">
+                <div class="photo"></div>
+            </div>
+            
+            <h2>Contact</h2>
+            <div class="sidebar-section">
+                <p><strong>Phone:</strong><br><span contenteditable="true">09307393285</span></p>
+                <p><strong>Email:</strong><br><span contenteditable="true">bumanglagjoysen@gmail.com</span></p>
+                <p><strong>Address:</strong><br><span contenteditable="true">Brgy. Naguillan, Nueva Era, Ilocos Norte</span></p>
+            </div>
+            
+            <h2>Information</h2>
+            <div class="sidebar-section">
+                <p><strong>Date of Birth:</strong> <span contenteditable="true">September 22, 1987</span></p>
+                <p><strong>Place of Birth:</strong> <span contenteditable="true">San Nicolas, Ilocos Norte</span></p>
+                <p><strong>Height:</strong> <span contenteditable="true">154 cm</span></p>
+                <p><strong>Weight:</strong> <span contenteditable="true">53 kg</span></p>
+                <p><strong>Religion:</strong> <span contenteditable="true">Singledone</span></p>
+                <p><strong>Civil Status:</strong> <span contenteditable="true">Single</span></p>
+                <p><strong>Gender:</strong> <span contenteditable="true">Male</span></p>
+                <p><strong>Citizenship:</strong> <span contenteditable="true">Filipino</span></p>
+                <p><strong>Language:</strong> <span contenteditable="true">Iloco, Tagalog, English</span></p>
+            </div>
+            
+            <h2>Education</h2>
+            <div class="sidebar-section">
+                <p><strong>Vocational:</strong><br>
+                <span contenteditable="true">Ilocos Norte College of Arts & Trades, Laoag City, Ilocos Norte</span><br>
+                <strong>Course:</strong> <span contenteditable="true">Automotive Servicing</span><br>
+                <strong>Year Graduated:</strong> <span contenteditable="true">2010</span></p>
+                
+                <p style="margin-top: 10px;"><strong>Secondary:</strong><br>
+                <span contenteditable="true">San Nicolas National High School, San Nicolas, Ilocos Norte</span><br>
+                <strong>Year Graduated:</strong> <span contenteditable="true">2004</span></p>
+                
+                <p style="margin-top: 10px;"><strong>Certificate:</strong><br>
+                <span contenteditable="true">Housekeeping NC II</span></p>
+            </div>
+            
+            <h2>Technical Skills</h2>
+            <div class="sidebar-section" contenteditable="true" style="font-size: 9px; line-height: 1.15;">
+                Inventory management<br>
+                Warehouse operations<br>
+                Stock control<br>
+                Product labeling and packaging<br>
+                Quality control<br>
+                Farm machinery management<br>
+                Crop cultivation and harvesting<br>
+                Health and safety compliance<br>
+                Drying facility management<br>
+                Organizational skills<br>
+                Problem-solving<br>
+                Communication skills<br>
+                Time management<br>
+                Customer service skills
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <h1 class="name" contenteditable="true">JOYSEN A. BUMANGLAG</h1>
+            
+            <div class="objective" contenteditable="true" style="font-style: italic;">
+                I am a proactive professional with extensive experience in hospitality, warehouse operations, and agricultural practices, seeking opportunities that foster growth while utilizing my versatile skill set. With proven success in international settings and embracing new technologies, I bring valuable cross-cultural experience and technical expertise. I am eager to take on new challenges while bringing my unique combination of practical skills to benefit your organization.
+            </div>
+            
+            <h2 class="section-title">Experience</h2>
+            
+            <div class="job-entry">
+                <div class="job-title" contenteditable="true">RedJewel Hotel</div>
+                <div class="job-details" contenteditable="true">Position: Hotel Cleaner<br>
+                Duration: 2019 - Present</div>
+                <div class="job-description" contenteditable="true">
+                    Responsible for maintaining the highest cleanliness and hygiene standards throughout all hotel premises including guest rooms, lobbies, corridors, restaurants, conference rooms, and public areas. Perform comprehensive daily cleaning duties using advanced cleaning techniques ensuring consistent quality standards are met across all shifts. Efficiently manage cleaning supplies inventory, track usage patterns, and coordinate with the housekeeping team of 15+ members to deliver exceptional service during peak seasons. Ensure all areas meet the hotel's strict hygiene requirements and exceed guest satisfaction expectations through attention to detail. Responsible for the proper use and maintenance of industrial cleaning equipment and chemicals, strictly following all safety protocols and MSDS procedures. Conduct regular quality inspections of assigned areas, document findings, and report any maintenance issues promptly to engineering department. Train new staff members on proper cleaning procedures and safety standards. Received multiple commendations for exceptional service and reliability.
+                </div>
+            </div>
+            
+            <div class="job-entry">
+                <div class="job-title" contenteditable="true">Ulep's Superstore & General Merchandise</div>
+                <div class="job-details" contenteditable="true">San Nicolas, Ilocos Norte<br>
+                Position: Warehouseman<br>
+                Duration: 2015 - 2018</div>
+                <div class="job-description" contenteditable="true">
+                    Effectively managed comprehensive inventory control systems and daily warehouse operations covering 5,000+ SKUs to ensure smooth business flow and 99% accuracy rate. Maintained highly accurate product listings using WMS software and strategically organized 10,000 sq ft storage areas according to OSHA safety standards and optimal space utilization. Efficiently processed 50+ daily incoming stock deliveries, conducted weekly systematic cycle counts to identify discrepancies, and closely coordinated with sales and purchasing departments to maintain adequate stock levels preventing stockouts. Expertly prepared 100+ daily shipments for customer orders ensuring accuracy and timely delivery within 24-hour turnaround. Created and arranged eye-catching promotional displays that increased sales by 15%. Ensured proper storage of diverse items including perishables according to specific product specifications, temperature requirements, and safety regulations. Implemented digital inventory tracking systems that reduced stock loss by 30% through maintaining detailed records. Supervised team of 5 warehouse assistants and conducted monthly safety training sessions.
+                </div>
+            </div>
+            
+            <div class="job-entry">
+                <div class="job-title" contenteditable="true">Japan Agriculture Exchange Council</div>
+                <div class="job-details" contenteditable="true">Tokyo, Japan<br>
+                Position: Farmer Trainee<br>
+                Duration: March 26, 2013 - March 19, 2014</div>
+                <div class="job-description" contenteditable="true">
+                    Successfully adopted and implemented modern Japanese farming technologies and precision agriculture techniques to improve efficiency and increase crop yields by 25%. Skillfully operated and maintained various types of advanced farm machinery including Kubota tractors, combine harvesters, rice transplanters, and specialized grain drying facilities with 50-ton capacity ensuring optimal performance through daily maintenance checks. Actively assisted in all phases of crop production on 100-hectare farm including strategic planting using GPS guidance, careful cultivating with automated systems, and efficient harvesting using proper techniques and precise timing to maximize quality and minimize losses. Diligently monitored crop health through twice-daily field inspections using digital tools and promptly implemented integrated pest management solutions reducing chemical use by 40%. Maintained comprehensive farming records in Japanese documenting all activities, yields, weather data, and equipment maintenance schedules. Ensured proper use, application, and storage of fertilizers and pesticides strictly following JA safety protocols and environmental regulations. Participated in weekly Kaizen meetings to improve farm operations and learned basic Japanese language for effective communication.
+                </div>
+            </div>
+            
+            <h2 class="section-title">References</h2>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <div style="width: 48%;">
+                    <div class="job-title" contenteditable="true">Analyn C. Bautista</div>
+                    <div class="job-details" contenteditable="true">HR Manager<br>
+                    Sarrat, Ilocos Norte<br>
+                    09858264028</div>
+                </div>
+                
+                <div style="width: 48%;">
+                    <div class="job-title" contenteditable="true">Constantino Ulep</div>
+                    <div class="job-details" contenteditable="true">General Manager<br>
+                    San Nicolas, Ilocos Norte<br>
+                    0912 780 9969</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Función para guardar cambios automáticamente
+        let saveTimeout;
+        document.addEventListener('input', function(e) {
+            if (e.target.hasAttribute('contenteditable')) {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    console.log('Cambios guardados automáticamente');
+                }, 1000);
+            }
+        });
+        
+        // Función para imprimir
+        function printCV() {
+            window.print();
+        }
+        
+        // Atajo de teclado para imprimir (Ctrl+P)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printCV();
+            }
+        });
+    </script>
+</body>
+</html>

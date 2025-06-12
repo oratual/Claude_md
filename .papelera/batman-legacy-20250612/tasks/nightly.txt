@@ -1,0 +1,36 @@
+# Batman Nightly Tasks
+# Tareas que se ejecutan cada noche antes de apagar el sistema
+
+# [backup-logs] Backup de logs del día
+priority: high
+frequency: daily
+> tar -czf /tmp/logs_backup_$(date +%Y%m%d).tar.gz logs/*.log
+TAG backup
+
+# [clean-temp] Limpiar archivos temporales
+priority: normal
+frequency: daily
+> find /tmp -name "*.tmp" -mtime +1 -delete 2>/dev/null || true
+TAG maintenance
+
+# [git-backup] Backup de repositorios git
+priority: high
+frequency: daily
+workdir: /home/lauta/glados
+> for repo in */; do [ -d "$repo/.git" ] && echo "Backing up $repo" && cd "$repo" && git add -A && git commit -m "Nightly backup $(date +%Y-%m-%d)" || true && cd ..; done
+TAG backup
+TAG git
+
+# [system-report] Generar reporte del sistema
+priority: normal
+frequency: daily
+> echo "=== System Report $(date) ===" > /tmp/system_report.txt && df -h >> /tmp/system_report.txt && free -h >> /tmp/system_report.txt
+TAG report
+
+# [update-repos] Actualizar repositorios
+priority: low
+frequency: daily
+> cd /home/lauta/glados && for repo in */; do [ -d "$repo/.git" ] && echo "Updating $repo" && cd "$repo" && git fetch origin || true && cd ..; done
+IF command_success(ping -c 1 github.com)
+TAG git
+TAG update

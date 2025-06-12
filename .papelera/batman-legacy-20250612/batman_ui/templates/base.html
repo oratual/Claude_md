@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦇 Batman Enhanced - {% block title %}Dashboard{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --batman-black: #0a0a0a;
+            --batman-dark: #1a1a1a;
+            --batman-gray: #2d2d2d;
+            --batman-yellow: #FFD700;
+            --batman-yellow-dark: #FFA500;
+            --batman-blue: #1e3a8a;
+            --batman-red: #dc2626;
+            --batman-green: #10b981;
+        }
+
+        body {
+            background-color: var(--batman-black);
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(180deg, var(--batman-dark) 0%, var(--batman-gray) 100%);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid var(--batman-yellow);
+        }
+
+        .navbar-brand {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2rem;
+            color: var(--batman-yellow) !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-link {
+            color: #e0e0e0 !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--batman-yellow) !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--batman-yellow) !important;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid var(--batman-yellow);
+        }
+
+        .bat-card {
+            background: linear-gradient(135deg, var(--batman-gray) 0%, var(--batman-dark) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .bat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(255, 215, 0, 0.3);
+            border-color: var(--batman-yellow);
+        }
+
+        .bat-card:hover::before {
+            opacity: 1;
+        }
+
+        .btn-batman {
+            background: linear-gradient(135deg, var(--batman-yellow) 0%, var(--batman-yellow-dark) 100%);
+            color: var(--batman-black);
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-batman::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .btn-batman:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-batman:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .btn-batman-secondary {
+            background: transparent;
+            color: var(--batman-yellow);
+            border: 2px solid var(--batman-yellow);
+        }
+
+        .btn-batman-secondary:hover {
+            background: var(--batman-yellow);
+            color: var(--batman-black);
+        }
+
+        .form-control, .form-select {
+            background-color: var(--batman-gray);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #e0e0e0;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--batman-gray);
+            border-color: var(--batman-yellow);
+            color: #e0e0e0;
+            box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+        }
+
+        .bat-logo {
+            width: 50px;
+            height: 50px;
+            background: var(--batman-yellow);
+            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C9 2 2 9 2 9s2 1 4 1c2 0 3-1 3-1s0 2-2 5c0 0 3-1 5-1s5 1 5 1c-2-3-2-5-2-5s1 1 3 1c2 0 4-1 4-1s-7-7-10-7z"/></svg>') no-repeat center;
+            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C9 2 2 9 2 9s2 1 4 1c2 0 3-1 3-1s0 2-2 5c0 0 3-1 5-1s5 1 5 1c-2-3-2-5-2-5s1 1 3 1c2 0 4-1 4-1s-7-7-10-7z"/></svg>') no-repeat center;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--batman-yellow);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert-batman {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--batman-yellow);
+            color: var(--batman-yellow);
+        }
+
+        .badge-batman {
+            background: var(--batman-yellow);
+            color: var(--batman-black);
+            font-weight: bold;
+        }
+
+        .progress {
+            background-color: var(--batman-gray);
+            height: 25px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--batman-yellow) 0%, var(--batman-yellow-dark) 100%);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--batman-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--batman-gray);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--batman-yellow);
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Tooltips personalizados */
+        .tooltip-inner {
+            background-color: var(--batman-yellow);
+            color: var(--batman-black);
+            font-weight: bold;
+        }
+
+        .tooltip.bs-tooltip-top .tooltip-arrow::before {
+            border-top-color: var(--batman-yellow);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <span class="bat-logo"></span>
+                BATMAN ENHANCED
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'tasks' %}active{% endif %}" href="/tasks">
+                            <i class="fas fa-tasks"></i> Tareas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'config' %}active{% endif %}" href="/config">
+                            <i class="fas fa-cog"></i> Configuración
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'wizard' %}active{% endif %}" href="/wizard">
+                            <i class="fas fa-magic"></i> Wizard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}" href="/reports">
+                            <i class="fas fa-chart-line"></i> Reportes
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-3 mt-5" style="border-top: 1px solid var(--batman-gray);">
+        <p class="mb-0">
+            <span class="bat-logo" style="width: 30px; height: 30px;"></span>
+            Batman Enhanced © 2024 - Protegiendo tu sistema mientras duermes
+        </p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Batman Sound Effects -->
+    <script>
+        // Sonido al hacer clic en botones
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.btn-batman');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Aquí podrías agregar un sonido
+                    console.log('🦇 Batman action!');
+                });
+            });
+
+            // Activar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

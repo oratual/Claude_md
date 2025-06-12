@@ -1,0 +1,524 @@
+# Batman Enhanced - Archivo de Configuración de Ejemplo
+# =======================================================
+# Este archivo contiene todas las opciones de configuración disponibles
+# con valores por defecto recomendados y explicaciones detalladas.
+#
+# Para usar: 
+# 1. Copia este archivo a ~/.batman/config/enhanced_config.yaml
+# 2. Modifica los valores según tus necesidades
+# 3. Ejecuta batman-enhanced --test para verificar
+
+# Versión de configuración (no modificar)
+version: "1.0"
+
+# ====================================
+# INTEGRACIÓN CON GITHUB
+# ====================================
+github:
+  # Habilitar/deshabilitar integración con GitHub
+  enabled: false
+  
+  # Repositorio donde crear issues/PRs (formato: owner/repo)
+  repo: "tu-usuario/tu-repositorio"
+  
+  # Rama por defecto para PRs
+  default_branch: "main"
+  
+  # Crear issues automáticamente para hallazgos
+  create_issues: true
+  
+  # Crear PRs con optimizaciones sugeridas
+  create_prs: false
+  
+  # Crear resumen diario como issue
+  daily_summary: true
+  
+  # Labels para issues creados
+  issue_labels:
+    - "batman-enhanced"
+    - "automated"
+    - "nocturnal"
+  
+  # Asignar issues a usuarios
+  issue_assignees: []
+    # - "tu-usuario"
+  
+  # Proyecto donde agregar issues (número del proyecto)
+  project_number: null
+  
+  # Límite de rate para evitar exceder límites de API
+  rate_limit_delay: 2  # segundos entre operaciones
+
+# ====================================
+# CONFIGURACIÓN DE ANÁLISIS
+# ====================================
+analyses:
+  # --- Análisis de Uso de Disco ---
+  disk_usage:
+    enabled: true
+    
+    # Alertar cuando el espacio libre sea menor a (GB)
+    threshold_gb: 100
+    
+    # Considerar archivos grandes si son mayores a (MB)
+    large_file_mb: 100
+    
+    # Buscar archivos no accedidos por más de (días)
+    old_file_days: 90
+    
+    # Buscar archivos duplicados
+    check_duplicates: false
+    
+    # Directorios a excluir del análisis
+    exclude_dirs:
+      - "/tmp"
+      - "/var/cache"
+      - "/proc"
+      - "/sys"
+      - "/dev"
+      - "node_modules"
+      - ".git"
+      - "__pycache__"
+      - ".cache"
+    
+    # Extensiones de archivo a ignorar
+    ignore_extensions:
+      - ".tmp"
+      - ".cache"
+      - ".swp"
+      - ".swo"
+  
+  # --- Análisis de Logs ---
+  log_analysis:
+    enabled: true
+    
+    # Patrones de error a buscar
+    patterns:
+      - "ERROR"
+      - "CRITICAL"
+      - "FAILED"
+      - "FATAL"
+      - "Exception"
+      - "Traceback"
+      - "Out of memory"
+      - "Connection refused"
+      - "Permission denied"
+      - "Segmentation fault"
+    
+    # Directorios de logs a analizar
+    log_dirs:
+      - "/var/log"
+      - "$HOME/.batman/logs"
+      # - "/opt/aplicacion/logs"
+    
+    # Archivos de log específicos
+    log_files: []
+      # - "/var/log/syslog"
+      # - "/var/log/auth.log"
+    
+    # Umbral de errores para crear alerta
+    error_threshold: 10
+    
+    # Analizar solo logs de los últimos N días
+    max_age_days: 7
+  
+  # --- Auditoría de Seguridad ---
+  security_audit:
+    enabled: true
+    
+    # Verificar permisos de archivos peligrosos
+    check_permissions: true
+    
+    # Archivos/directorios sensibles a verificar
+    sensitive_paths:
+      - "/etc/passwd"
+      - "/etc/shadow"
+      - "/etc/ssh/sshd_config"
+      - "$HOME/.ssh"
+    
+    # Verificar puertos abiertos
+    check_open_ports: true
+    
+    # Puertos esperados (no alertar sobre estos)
+    expected_ports:
+      - 22   # SSH
+      - 80   # HTTP
+      - 443  # HTTPS
+      # - 3306 # MySQL
+      # - 5432 # PostgreSQL
+    
+    # Verificar usuarios del sistema
+    check_users: true
+    
+    # Verificar procesos sospechosos
+    check_processes: true
+    
+    # Verificar configuración SSH
+    check_ssh_config: true
+    
+    # Verificar actualizaciones de seguridad
+    check_updates: false
+  
+  # --- Métricas de Rendimiento ---
+  performance_metrics:
+    enabled: true
+    
+    # Umbrales de alerta
+    cpu_threshold: 80        # Porcentaje
+    memory_threshold: 90     # Porcentaje
+    disk_io_threshold: 85    # Porcentaje
+    load_average_threshold: 2.0
+    
+    # Recolectar métricas de
+    collect_metrics:
+      - "cpu_usage"
+      - "memory_usage"
+      - "disk_io"
+      - "network_traffic"
+      - "process_count"
+      - "swap_usage"
+    
+    # Procesos a monitorear específicamente
+    monitor_processes: []
+      # - "nginx"
+      # - "mysql"
+      # - "postgres"
+    
+    # Alertar si un proceso usa más de X% CPU
+    process_cpu_threshold: 50
+    
+    # Alertar si un proceso usa más de X MB memoria
+    process_memory_threshold: 1024
+
+# ====================================
+# CONFIGURACIÓN DE OPTIMIZACIONES
+# ====================================
+optimizations:
+  # --- Limpieza Automática ---
+  auto_cleanup:
+    enabled: true
+    
+    # Edad mínima de archivos temporales para eliminar (días)
+    temp_file_age_days: 7
+    
+    # Máximo número de archivos a eliminar por ejecución
+    max_files_per_run: 10
+    
+    # Directorios de temporales
+    temp_dirs:
+      - "/tmp"
+      - "/var/tmp"
+      - "$HOME/.cache"
+    
+    # Patrones de archivos temporales
+    temp_patterns:
+      - "*.tmp"
+      - "*.temp"
+      - "*.swp"
+      - "*.swo"
+      - "*~"
+      - "core.*"
+    
+    # Nunca eliminar estos archivos
+    exclude_patterns:
+      - "*.pid"
+      - "*.lock"
+      - "*.sock"
+  
+  # --- Compresión de Logs ---
+  compress_logs:
+    enabled: true
+    
+    # Comprimir logs más antiguos que (días)
+    compress_after_days: 30
+    
+    # Nivel de compresión (1-9, 6 es balance)
+    compression_level: 6
+    
+    # Formato de compresión
+    compression_format: "gzip"  # gzip, bzip2, xz
+    
+    # Mantener original después de comprimir
+    keep_original: false
+    
+    # Patrones de logs a comprimir
+    log_patterns:
+      - "*.log"
+      - "*.log.[0-9]*"
+      - "syslog.*"
+  
+  # --- Optimización de Git ---
+  optimize_git:
+    enabled: false
+    
+    # Ejecutar git gc agresivo
+    gc_aggressive: false
+    
+    # Eliminar branches mergeadas
+    prune_merged_branches: true
+    
+    # Días para considerar branch inactiva
+    inactive_branch_days: 30
+    
+    # Directorios donde buscar repos git
+    git_dirs:
+      - "$HOME/projects"
+      - "$HOME/repos"
+    
+    # Repos a excluir
+    exclude_repos: []
+      # - "importante-no-tocar"
+
+# ====================================
+# MODEL CONTEXT PROTOCOLS (MCPs)
+# ====================================
+mcp:
+  # --- Filesystem MCP ---
+  filesystem:
+    enabled: true
+    
+    # Rutas permitidas para el MCP
+    allowed_paths:
+      - "$HOME/glados"
+      - "$HOME/Documents"
+      - "$HOME/.batman"
+    
+    # Operaciones permitidas
+    allowed_operations:
+      - "read"
+      - "write"
+      - "list"
+  
+  # --- Memory MCP ---
+  memory:
+    enabled: true
+    
+    # Máximo número de items en memoria
+    max_items: 1000
+    
+    # Tiempo de vida de items (minutos)
+    ttl_minutes: 1440  # 24 horas
+  
+  # --- Git MCP ---
+  git:
+    enabled: false
+    
+    # Repos permitidos
+    allowed_repos: []
+  
+  # --- Sequential Thinking MCP ---
+  sequential_thinking:
+    enabled: false
+    
+    # Nivel de detalle del razonamiento
+    detail_level: "normal"  # minimal, normal, detailed
+
+# ====================================
+# NOTIFICACIONES
+# ====================================
+notifications:
+  # --- Email ---
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    use_tls: true
+    username: "tu-email@gmail.com"
+    password: "tu-app-password"  # Usar app password, no contraseña normal
+    from_address: "batman-enhanced@tudominio.com"
+    to_addresses:
+      - "admin@tudominio.com"
+    
+    # Cuándo enviar emails
+    send_on:
+      - "critical_error"
+      - "security_alert"
+      # - "daily_summary"
+      # - "optimization_complete"
+  
+  # --- Slack ---
+  slack:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/services/..."
+    channel: "#batman-alerts"
+    username: "Batman Enhanced"
+    icon_emoji: ":bat:"
+    
+    # Nivel mínimo de severidad para notificar
+    min_severity: "warning"  # info, warning, error, critical
+  
+  # --- Telegram ---
+  telegram:
+    enabled: false
+    bot_token: "123456:ABC-DEF..."
+    chat_id: "-1001234567890"
+  
+  # --- Webhook Genérico ---
+  webhook:
+    enabled: false
+    url: "https://tu-servidor.com/webhook"
+    method: "POST"
+    headers:
+      Authorization: "Bearer tu-token"
+    
+    # Incluir estos campos en el payload
+    payload_fields:
+      - "timestamp"
+      - "summary"
+      - "discoveries"
+      - "actions"
+
+# ====================================
+# PROGRAMACIÓN Y HORARIOS
+# ====================================
+schedule:
+  # Expresión cron (minuto hora día mes día_semana)
+  # Ejemplos:
+  # "0 3 * * *"     - Todos los días a las 3:00 AM
+  # "0 2 * * 1-5"   - Lunes a viernes a las 2:00 AM
+  # "0 4 * * 6,0"   - Sábados y domingos a las 4:00 AM
+  # "*/30 * * * *"  - Cada 30 minutos
+  cron: "0 3 * * *"
+  
+  # Zona horaria (lista: timedatectl list-timezones)
+  timezone: "America/Argentina/Buenos_Aires"
+  
+  # Ejecutar al inicio si se perdió la última ejecución
+  run_on_startup_if_missed: true
+  
+  # Ventana de mantenimiento (no ejecutar fuera de estas horas)
+  maintenance_window:
+    enabled: false
+    start_hour: 2    # 2 AM
+    end_hour: 6      # 6 AM
+
+# ====================================
+# LÍMITES Y SEGURIDAD
+# ====================================
+limits:
+  # Tiempo máximo de ejecución total (segundos)
+  max_execution_time: 3600  # 1 hora
+  
+  # Tiempo máximo por tarea (segundos)
+  max_task_time: 600  # 10 minutos
+  
+  # Máximo número de operaciones de archivo
+  max_file_operations: 100
+  
+  # Memoria máxima a usar (MB)
+  max_memory_mb: 1024
+  
+  # CPU máxima a usar (porcentaje)
+  max_cpu_percent: 50
+  
+  # Espacio mínimo libre requerido (GB)
+  min_free_space_gb: 10
+  
+  # Modo seguro (solo operaciones reversibles)
+  safe_mode: true
+  
+  # Modo dry-run (simular sin hacer cambios)
+  dry_run: false
+  
+  # Requerir confirmación para cambios
+  require_confirmation: false
+
+# ====================================
+# LOGGING Y DEBUG
+# ====================================
+logging:
+  # Nivel de log: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Formato de log
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Directorio de logs
+  log_dir: "$HOME/.batman/logs"
+  
+  # Rotación de logs
+  rotate:
+    enabled: true
+    when: "midnight"     # midnight, W0-W6 (weekday), D (daily)
+    interval: 1
+    backup_count: 30     # Mantener 30 días de logs
+  
+  # Log separado para errores
+  separate_error_log: true
+  
+  # Incluir información de sistema en logs
+  include_system_info: true
+  
+  # Logs por módulo (override del nivel general)
+  module_levels:
+    # "batman.analyzer": "DEBUG"
+    # "batman.optimizer": "WARNING"
+
+# ====================================
+# CARACTERÍSTICAS AVANZADAS
+# ====================================
+advanced:
+  # Usar caché para acelerar análisis
+  use_cache: true
+  cache_ttl_hours: 24
+  
+  # Paralelización
+  parallel_execution: true
+  max_workers: 4
+  
+  # Modo de emergencia (solo tareas críticas)
+  emergency_mode: false
+  
+  # Backup antes de optimizaciones
+  backup_before_optimize: true
+  backup_location: "$HOME/.batman/backups"
+  
+  # Integración con systemd
+  systemd_integration: false
+  
+  # Métricas Prometheus
+  prometheus:
+    enabled: false
+    port: 9090
+    endpoint: "/metrics"
+  
+  # API REST
+  rest_api:
+    enabled: false
+    port: 8080
+    auth_required: true
+    api_key: "genera-una-clave-segura-aqui"
+
+# ====================================
+# REGLAS PERSONALIZADAS
+# ====================================
+custom_rules:
+  # Puedes definir reglas personalizadas aquí
+  # Ejemplo:
+  # - name: "Limpiar cache de npm"
+  #   condition: "disk_usage > 80"
+  #   action: "rm -rf ~/.npm/_cacache"
+  #   safe_mode_required: false
+
+# ====================================
+# PLANTILLAS DE TAREAS
+# ====================================
+task_templates:
+  # Las plantillas se cargan desde ~/.batman/templates/
+  # Puedes referenciarlas por nombre en la UI
+  enabled: true
+  auto_load: true
+
+# ====================================
+# METADATOS
+# ====================================
+metadata:
+  # No modificar - usado internamente
+  config_version: "1.0.0"
+  last_modified: null
+  validated: false
+
+# Fin del archivo de configuración
+# =================================
+# Para validar este archivo:
+# batman-enhanced --validate-config

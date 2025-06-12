@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+"""
+Batman Monitor Safe - Monitor de agentes que NO interfiere con Claude console
+Escribe a archivo de log y terminal separado, nunca a stdout/stderr principal
+"""
+
+import time
+import subprocess
+import json
+import os
+import sys
+from pathlib import Path
+from datetime import datetime
+import psutil
+import signal
+from threading import Thread
+
+class SafeBatmanMonitor:
+    def __init__(self):
+        self.running = True
+        self.log_file = '/tmp/batman_monitor.log'
+        self.status_file = '/tmp/batman_status.json'
+        
+        # Detectar agentes conocidos
+        self.agent_patterns = {
+            'alfred': '🧙',
+            'robin': '🐦', 
+            'oracle': '👁️',
+            'batgirl': '🦹‍♀️',
+            'lucius': '🦊',
+            'batman': '🦇'
+        }
+        
+        # Configurar signal handlers
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
+    
+    def signal_handler(self, signum, frame):
+        self.running = False
+    
+    def scan_claude_processes(self):
+        """Escanea procesos de Claude activos."""
+        agents = {}
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time', 'cpu_percent', 'memory_percent']):
+                if proc.info['name'] == 'claude':
+                    cmdline = ' '.join(proc.info['cmdline']) if proc.info['cmdline'] else ''
+                    
+                    # Detectar tipo de agente por cmdline
+                    agent_type = 'unknown'
+                    for agent, emoji in self.agent_patterns.items():
+                        if agent in cmdline.lower():
+                            agent_type = agent
+                            break
+                    
+                    agents[proc.info['pid']] = {
+                        'type': agent_type,
+                        'emoji': self.agent_patterns.get(agent_type, '🤖'),
+                        'pid': proc.info['pid'],
+                        'started': datetime.fromtimestamp(proc.info['create_time']).strftime('%H:%M:%S'),
+                        'cpu': proc.info['cpu_percent'] or 0,
+                        'memory': proc.info['memory_percent'] or 0,
+                        'status': 'working',
+                        'cmdline': cmdline[:100]  # Primeros 100 chars
+                    }
+        except Exception as e:
+            self.log_error(f"Error scanning processes: {e}")
+        return agents
+    
+    def get_system_stats(self):
+        """Obtiene estadísticas del sistema."""
+        try:
+            return {
+                'cpu': psutil.cpu_percent(interval=0.1),
+                'memory': psutil.virtual_memory().percent,
+                'disk': psutil.disk_usage('/').percent,
+                'claude_instances': len([p for p in psutil.process_iter() if p.name() == 'claude']),
+                'load': os.getloadavg()[0] if hasattr(os, 'getloadavg') else 0,
+                'timestamp': datetime.now().isoformat()
+            }
+        except Exception as e:
+            self.log_error(f"Error getting system stats: {e}")
+            return {}
+    
+    def get_recent_files(self):
+        """Obtiene archivos modificados recientemente."""
+        try:
+            result = subprocess.run([
+                'find', '.', '-type', 'f', 
+                '(', '-name', '*.py', '-o', '-name', '*.md', '-o', '-name', '*.yml', '-o', '-name', '*.js', ')',
+                '-mmin', '-10'
+            ], capture_output=True, text=True, cwd='/home/lauta/glados/batman-incorporated')
+            
+            files = []
+            for line in result.stdout.strip().split('\n'):
+                if line and 'venv' not in line and '__pycache__' not in line:
+                    try:
+                        file_path = f'/home/lauta/glados/batman-incorporated/{line[2:]}'
+                        stat = os.stat(file_path)
+                        files.append({
+                            'path': line[2:],
+                            'time': datetime.fromtimestamp(stat.st_mtime).strftime('%H:%M:%S'),
+                            'size': stat.st_size
+                        })
+                    except:
+                        pass
+            
+            return sorted(files, key=lambda x: x['time'], reverse=True)[:10]
+        except Exception as e:
+            self.log_error(f"Error getting recent files: {e}")
+            return []
+    
+    def log_error(self, message):
+        """Log error to file, never to stdout."""
+        try:
+            with open('/tmp/batman_monitor_errors.log', 'a') as f:
+                f.write(f"[{datetime.now().isoformat()}] {message}\n")
+        except:
+            pass  # If we can't log, just continue
+    
+    def write_status(self, data):
+        """Escribe status a archivo JSON."""
+        try:
+            # Formato compatible con la UI web
+            web_data = {
+                'agents': {},
+                'stats': {
+                    'total_tasks': 0,
+                    'completed_tasks': 0,
+                    'active_agents': len(data.get('agents', {})),
+                    'files_modified': len(data.get('files', [])),
+                    'recent_files': [f['path'] for f in data.get('files', [])][:5]
+                },
+                'system': data.get('system', {}),
+                'timestamp': data.get('timestamp', datetime.now().isoformat())
+            }
+            
+            # Mapear agentes al formato de la UI
+            for pid, agent in data.get('agents', {}).items():
+                agent_name = agent.get('type', 'unknown')
+                if agent_name in self.agent_patterns:
+                    web_data['agents'][agent_name] = {
+                        'status': 'active' if agent.get('cpu', 0) > 0 else 'idle',
+                        'current_task': f"Procesando... (CPU: {agent.get('cpu', 0):.1f}%)",
+                        'progress': min(int(agent.get('cpu', 0) * 10), 100),  # Estimación
+                        'pid': pid,
+                        'started': agent.get('started', ''),
+                        'memory': agent.get('memory', 0),
+                        'cpu': agent.get('cpu', 0)
+                    }
+            
+            # Asegurar que todos los agentes estén representados
+            for agent_name in ['alfred', 'robin', 'oracle', 'batgirl', 'lucius']:
+                if agent_name not in web_data['agents']:
+                    web_data['agents'][agent_name] = {
+                        'status': 'inactive',
+                        'current_task': '',
+                        'progress': 0
+                    }
+            
+            with open(self.status_file, 'w') as f:
+                json.dump(web_data, f, indent=2)
+        except Exception as e:
+            self.log_error(f"Error writing status: {e}")
+    
+    def format_report(self, agents, stats, files):
+        """Formatea reporte legible."""
+        lines = []
+        lines.append("=" * 60)
+        lines.append(f"🦇 BATMAN MONITOR - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        lines.append("=" * 60)
+        
+        # Agentes
+        lines.append(f"\n👥 AGENTES ACTIVOS ({len(agents)})")
+        lines.append("-" * 40)
+        if agents:
+            for pid, agent in agents.items():
+                lines.append(f"{agent['emoji']} {agent['type']:10} PID:{pid:6} CPU:{agent['cpu']:4.1f}% MEM:{agent['memory']:4.1f}% ({agent['started']})")
+        else:
+            lines.append("   No hay agentes activos")
+        
+        # Sistema
+        lines.append(f"\n📊 SISTEMA")
+        lines.append("-" * 40)
+        lines.append(f"   CPU: {stats.get('cpu', 0):.1f}%")
+        lines.append(f"   RAM: {stats.get('memory', 0):.1f}%")
+        lines.append(f"   Claude Instances: {stats.get('claude_instances', 0)}")
+        lines.append(f"   Load: {stats.get('load', 0):.2f}")
+        
+        # Archivos recientes
+        if files:
+            lines.append(f"\n📁 ARCHIVOS MODIFICADOS (últimos 10min)")
+            lines.append("-" * 40)
+            for file_info in files[:5]:
+                lines.append(f"   [{file_info['time']}] {file_info['path']} ({file_info['size']}b)")
+        
+        lines.append("\n" + "=" * 60)
+        return "\n".join(lines)
+    
+    def run_daemon(self):
+        """Ejecuta como daemon escribiendo solo a archivos."""
+        print(f"🦇 Batman Monitor iniciado como daemon")
+        print(f"📄 Status: {self.status_file}")
+        print(f"📝 Log: {self.log_file}")
+        print(f"❌ Errors: /tmp/batman_monitor_errors.log")
+        print("Para ver status: cat /tmp/batman_status.json")
+        print("Para ver log: tail -f /tmp/batman_monitor.log")
+        print("Para parar: kill <pid> o Ctrl+C")
+        
+        while self.running:
+            try:
+                # Recopilar datos
+                agents = self.scan_claude_processes()
+                stats = self.get_system_stats()
+                files = self.get_recent_files()
+                
+                # Preparar datos completos
+                data = {
+                    'timestamp': datetime.now().isoformat(),
+                    'agents': agents,
+                    'system': stats,
+                    'files': files,
+                    'summary': {
+                        'total_agents': len(agents),
+                        'cpu_usage': stats.get('cpu', 0),
+                        'memory_usage': stats.get('memory', 0),
+                        'recent_changes': len(files)
+                    }
+                }
+                
+                # Escribir a archivo JSON
+                self.write_status(data)
+                
+                # Escribir reporte legible a log
+                report = self.format_report(agents, stats, files)
+                try:
+                    with open(self.log_file, 'w') as f:
+                        f.write(report)
+                except Exception as e:
+                    self.log_error(f"Error writing log: {e}")
+                
+                time.sleep(3)  # Actualizar cada 3 segundos
+                
+            except Exception as e:
+                self.log_error(f"Error in main loop: {e}")
+                time.sleep(5)
+        
+        print("🦇 Batman Monitor detenido")
+    
+    def show_status(self):
+        """Muestra status actual una vez y sale."""
+        try:
+            agents = self.scan_claude_processes()
+            stats = self.get_system_stats()
+            files = self.get_recent_files()
+            
+            report = self.format_report(agents, stats, files)
+            print(report)
+            
+        except Exception as e:
+            print(f"Error mostrando status: {e}")
+
+def main():
+    monitor = SafeBatmanMonitor()
+    
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '--daemon':
+            # Modo daemon - corre en background escribiendo a archivos
+            monitor.run_daemon()
+        elif sys.argv[1] == '--status':
+            # Modo status - muestra una vez y sale
+            monitor.show_status()
+        elif sys.argv[1] == '--help':
+            print("🦇 Batman Monitor Safe")
+            print("Uso:")
+            print("  batman-monitor-safe --daemon   # Corre como daemon")
+            print("  batman-monitor-safe --status   # Muestra status una vez")
+            print("  batman-monitor-safe --help     # Muestra esta ayuda")
+            print("")
+            print("Archivos generados:")
+            print("  /tmp/batman_status.json       # Status en JSON")
+            print("  /tmp/batman_monitor.log        # Log legible")
+            print("  /tmp/batman_monitor_errors.log # Errores")
+    else:
+        # Modo por defecto - status una vez
+        monitor.show_status()
+
+if __name__ == "__main__":
+    main()

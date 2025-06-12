@@ -1,0 +1,115 @@
+#!/bin/bash
+# 🌙 Direct Night Worker - Trabajo nocturno directo sin dependencias Batman
+
+echo "🌙 DIRECT NIGHT WORKER - STARTING AUTONOMOUS OPERATION"
+echo "=================================================="
+echo "Start: $(date)"
+echo "Target: Fix DiskDominator completely"
+echo "Mode: Direct parallel operations"
+echo "=================================================="
+
+cd /home/lauta/glados/DiskDominator
+
+# Función para logging
+log_action() {
+    echo "$(date '+%H:%M:%S') - $1" >> /tmp/night_worker.log
+    echo "$(date '+%H:%M:%S') - $1"
+}
+
+log_action "🚀 Starting night worker operations"
+
+# CICLO DE TRABAJO NOCTURNO
+for cycle in {1..20}; do
+    log_action "🔄 Starting work cycle $cycle/20"
+    
+    # 1. Arreglar errores Rust específicos
+    log_action "🦀 Fixing Rust errors..."
+    (
+        # Unificar tipos FileInfo/FileMetadata
+        cd src-tauri/src/commands
+        sed -i 's/FileMetadata/FileInfo/g' file_commands.rs
+        
+        # Añadir chrono dependency
+        cd ../..
+        if ! grep -q "chrono" Cargo.toml; then
+            echo 'chrono = "0.4"' >> Cargo.toml
+        fi
+        
+        # Crear iconos faltantes
+        mkdir -p icons
+        cp /home/lauta/glados/DiskDominator/icons/32x32.png src-tauri/icons/ 2>/dev/null || echo "Icon copy attempted"
+        
+        log_action "✅ Rust fixes applied"
+    ) &
+    
+    # 2. Unificar estructuras duplicadas
+    log_action "🔧 Unifying duplicate structures..."
+    (
+        # Unificar OrganizeRules
+        rg -l "pub struct OrganizeRules" --type rust | head -1 | xargs -I {} cp {} /tmp/organize_rules_unified.rs
+        
+        log_action "✅ Structure unification attempted"
+    ) &
+    
+    # 3. Build checks
+    log_action "🏗️ Building and testing..."
+    (
+        cd src-tauri
+        timeout 300 cargo check > /tmp/cargo_check_$cycle.log 2>&1
+        if [ $? -eq 0 ]; then
+            log_action "✅ Cargo check passed in cycle $cycle"
+            # Si check pasa, intentar build
+            timeout 600 cargo build --release > /tmp/cargo_build_$cycle.log 2>&1
+            if [ $? -eq 0 ]; then
+                log_action "🎉 CARGO BUILD SUCCESS in cycle $cycle!"
+                echo "BUILD_SUCCESS_CYCLE_$cycle=$(date)" >> /tmp/night_achievements.log
+            fi
+        fi
+    ) &
+    
+    # 4. Frontend optimizations
+    log_action "⚛️ Frontend optimizations..."
+    (
+        # Arreglar imports faltantes
+        find components -name "*.tsx" -exec sed -i '1i import React from "react";' {} \; 2>/dev/null
+        
+        # Build frontend
+        timeout 300 npm run build > /tmp/npm_build_$cycle.log 2>&1
+        if [ $? -eq 0 ]; then
+            log_action "✅ Frontend build success in cycle $cycle"
+            echo "FRONTEND_SUCCESS_CYCLE_$cycle=$(date)" >> /tmp/night_achievements.log
+        fi
+    ) &
+    
+    # Esperar que terminen las tareas del ciclo
+    wait
+    
+    # Progress checkpoint
+    log_action "📊 Cycle $cycle completed"
+    echo "CYCLE_${cycle}_COMPLETED=$(date)" >> /tmp/night_progress_direct.log
+    
+    # Auto-commit progreso cada 5 ciclos
+    if [ $((cycle % 5)) -eq 0 ]; then
+        log_action "💾 Auto-committing progress..."
+        git add . && git commit -m "🌙 Night worker progress - cycle $cycle $(date)" && log_action "✅ Progress committed"
+    fi
+    
+    # Check si debe parar
+    if [ -f /tmp/night_stop ]; then
+        log_action "🛑 Stop signal received, ending operations"
+        break
+    fi
+    
+    # Descanso entre ciclos
+    sleep 60
+done
+
+log_action "🌅 Night worker completed all cycles"
+echo "NIGHT_WORKER_COMPLETED=$(date)" >> /tmp/night_achievements.log
+
+# Final commit
+git add . && git commit -m "🌅 Night worker final commit $(date)"
+
+echo "🌙 NIGHT WORKER FINISHED"
+echo "Results in: /tmp/night_*.log"
+echo "To stop early: touch /tmp/night_stop"

@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""Infinity Launcher - Lanza agentes automáticamente."""
+
+import sys
+import subprocess
+import time
+from pathlib import Path
+
+def launch_agent_terminals():
+    """Lanza agentes en terminales separadas."""
+    agents = ['alfred', 'robin', 'oracle', 'batgirl', 'lucius']
+    
+    print("🚀 Lanzando agentes en terminales separadas...")
+    
+    for agent in agents:
+        try:
+            cmd = [
+                'gnome-terminal', '--',
+                'bash', '-c',
+                f'echo "🦇 Iniciando {agent}..." && sleep 2 && echo "Agent {agent} ready!" && read'
+            ]
+            
+            subprocess.Popen(cmd, start_new_session=True)
+            print(f"  ✅ {agent} lanzado")
+            time.sleep(1)
+            
+        except Exception as e:
+            print(f"  ❌ Error lanzando {agent}: {e}")
+    
+    print("\n🎉 Todos los agentes lanzados!")
+
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] == '--auto':
+        launch_agent_terminals()
+    else:
+        print("🌌 Infinity Launcher")
+        print("Uso: ./launch-infinity --auto")
+
+if __name__ == "__main__":
+    main()

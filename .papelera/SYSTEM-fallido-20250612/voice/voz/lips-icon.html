@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lips Icon Generator</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        button {
+            background: #D50000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #B71C1C;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💋 Icono de Labios Rojos</h2>
+        <canvas id="canvas" width="256" height="256"></canvas>
+        <br>
+        <button onclick="downloadPNG()">Descargar PNG</button>
+        <button onclick="downloadICO()">Descargar ICO</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Dibujar labios
+        function drawLips() {
+            // Limpiar canvas
+            ctx.clearRect(0, 0, 256, 256);
+            
+            // Crear gradiente
+            const gradient = ctx.createLinearGradient(0, 80, 0, 180);
+            gradient.addColorStop(0, '#FF1744');
+            gradient.addColorStop(0.5, '#D50000');
+            gradient.addColorStop(1, '#B71C1C');
+            
+            // Sombra
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 5;
+            
+            // Labio superior
+            ctx.beginPath();
+            ctx.moveTo(50, 130);
+            ctx.quadraticCurveTo(70, 100, 90, 105);
+            ctx.quadraticCurveTo(108, 95, 128, 100);
+            ctx.quadraticCurveTo(148, 95, 166, 105);
+            ctx.quadraticCurveTo(186, 100, 206, 130);
+            ctx.quadraticCurveTo(180, 125, 166, 120);
+            ctx.quadraticCurveTo(148, 125, 128, 120);
+            ctx.quadraticCurveTo(108, 125, 90, 120);
+            ctx.quadraticCurveTo(76, 125, 50, 130);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#8B0000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Labio inferior
+            ctx.beginPath();
+            ctx.moveTo(50, 130);
+            ctx.quadraticCurveTo(128, 180, 206, 130);
+            ctx.quadraticCurveTo(180, 160, 128, 165);
+            ctx.quadraticCurveTo(76, 160, 50, 130);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.stroke();
+            
+            // Línea central
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(50, 130);
+            ctx.lineTo(206, 130);
+            ctx.strokeStyle = 'rgba(139, 0, 0, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            // Brillo
+            const gloss = ctx.createRadialGradient(110, 115, 0, 110, 115, 25);
+            gloss.addColorStop(0, 'rgba(255,255,255,0.6)');
+            gloss.addColorStop(1, 'rgba(255,255,255,0)');
+            
+            ctx.fillStyle = gloss;
+            ctx.beginPath();
+            ctx.ellipse(110, 115, 25, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.ellipse(146, 115, 25, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Descargar como PNG
+        function downloadPNG() {
+            const link = document.createElement('a');
+            link.download = 'lips-icon.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Descargar como ICO (simplificado)
+        function downloadICO() {
+            // Para un ICO real, necesitaríamos una librería
+            alert('Para crear un ICO real, usa el PNG con un convertidor online como convertio.co o cloudconvert.com');
+            downloadPNG();
+        }
+        
+        // Dibujar al cargar
+        drawLips();
+    </script>
+</body>
+</html>

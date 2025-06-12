@@ -1,0 +1,248 @@
+#!/bin/bash
+# Batman Web UI - Lanzador de interfaz web
+
+set -e
+
+# Colores
+PURPLE='\033[0;35m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Directorio del proyecto
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WEB_SERVER="$PROJECT_DIR/src/monitor/web_server.py"
+
+# Verificar Python
+if ! command -v python3 &> /dev/null; then
+    echo -e "${RED}❌ Python3 no encontrado${NC}"
+    exit 1
+fi
+
+# Función para mostrar ayuda
+show_help() {
+    echo -e "${PURPLE}🦇 Batman Web UI${NC}"
+    echo ""
+    echo "Interfaz web para monitorear agentes de Batman Incorporated"
+    echo ""
+    echo -e "${GREEN}Uso:${NC}"
+    echo "  ./batman-web start    - Iniciar servidor web"
+    echo "  ./batman-web stop     - Detener servidor web"
+    echo "  ./batman-web status   - Ver estado del servidor"
+    echo "  ./batman-web open     - Abrir UI en navegador"
+    echo "  ./batman-web help     - Mostrar esta ayuda"
+    echo ""
+    echo -e "${YELLOW}URLs:${NC}"
+    echo "  Web UI:    http://localhost:8080"
+    echo "  WebSocket: ws://localhost:8765"
+    echo ""
+    echo -e "${YELLOW}Requisitos:${NC}"
+    echo "  - Python 3.7+"
+    echo "  - pip install aiohttp websockets watchdog"
+    echo "  - Monitor activo (./monitor start)"
+}
+
+# Verificar/instalar dependencias
+check_dependencies() {
+    echo -e "${YELLOW}📦 Verificando dependencias...${NC}"
+    
+    local missing_deps=()
+    
+    # Verificar cada dependencia
+    for dep in aiohttp websockets watchdog psutil; do
+        if ! python3 -c "import $dep" 2>/dev/null; then
+            missing_deps+=($dep)
+        fi
+    done
+    
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        echo -e "${YELLOW}Instalando dependencias faltantes: ${missing_deps[*]}${NC}"
+        pip install --user ${missing_deps[*]} || {
+            echo -e "${RED}❌ Error instalando dependencias${NC}"
+            echo "Intenta: pip install --user aiohttp websockets watchdog psutil"
+            exit 1
+        }
+    else
+        echo -e "${GREEN}✅ Todas las dependencias instaladas${NC}"
+    fi
+}
+
+# Iniciar servidor
+start_server() {
+    # Verificar si ya está corriendo
+    if pgrep -f "web_server.py" > /dev/null; then
+        echo -e "${YELLOW}⚠️  El servidor ya está en ejecución${NC}"
+        show_status
+        return
+    fi
+    
+    # Verificar dependencias
+    check_dependencies
+    
+    # Verificar que el monitor esté activo
+    if ! pgrep -f "batman-monitor-safe" > /dev/null; then
+        echo -e "${YELLOW}⚠️  El monitor no está activo${NC}"
+        echo "Ejecuta primero: ./monitor start"
+        echo ""
+    fi
+    
+    echo -e "${GREEN}🚀 Iniciando Batman Web UI...${NC}"
+    
+    # Iniciar servidor en background
+    nohup python3 "$WEB_SERVER" > /tmp/batman_web.log 2>&1 &
+    local pid=$!
+    echo $pid > /tmp/batman_web.pid
+    
+    # Esperar un momento para verificar que inició
+    sleep 2
+    
+    if kill -0 $pid 2>/dev/null; then
+        echo -e "${GREEN}✅ Servidor iniciado (PID: $pid)${NC}"
+        echo ""
+        echo -e "${PURPLE}🌐 Interfaz web disponible en:${NC}"
+        echo "   http://localhost:8080"
+        echo ""
+        echo "Para ver logs: tail -f /tmp/batman_web.log"
+        echo "Para detener: ./batman-web stop"
+    else
+        echo -e "${RED}❌ Error al iniciar servidor${NC}"
+        echo "Ver logs: cat /tmp/batman_web.log"
+        exit 1
+    fi
+}
+
+# Detener servidor
+stop_server() {
+    if [ -f /tmp/batman_web.pid ]; then
+        local pid=$(cat /tmp/batman_web.pid)
+        if kill -0 $pid 2>/dev/null; then
+            echo -e "${YELLOW}🛑 Deteniendo servidor...${NC}"
+            kill $pid
+            rm -f /tmp/batman_web.pid
+            echo -e "${GREEN}✅ Servidor detenido${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Servidor no encontrado${NC}"
+            rm -f /tmp/batman_web.pid
+        fi
+    else
+        # Buscar por nombre
+        local pid=$(pgrep -f "web_server.py")
+        if [ -n "$pid" ]; then
+            echo -e "${YELLOW}🛑 Deteniendo servidor (PID: $pid)...${NC}"
+            kill $pid
+            echo -e "${GREEN}✅ Servidor detenido${NC}"
+        else
+            echo -e "${YELLOW}⚠️  No hay servidor en ejecución${NC}"
+        fi
+    fi
+}
+
+# Mostrar estado
+show_status() {
+    echo -e "${PURPLE}🦇 Batman Web UI - Estado${NC}"
+    echo ""
+    
+    # Verificar servidor web
+    local web_pid=$(pgrep -f "web_server.py")
+    if [ -n "$web_pid" ]; then
+        echo -e "${GREEN}✅ Servidor web activo${NC} (PID: $web_pid)"
+        echo "   URL: http://localhost:8080"
+        
+        # Verificar puerto HTTP
+        if netstat -tuln 2>/dev/null | grep -q ":8080"; then
+            echo -e "${GREEN}✅ Puerto HTTP 8080 abierto${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Puerto HTTP 8080 no responde${NC}"
+        fi
+        
+        # Verificar puerto WebSocket
+        if netstat -tuln 2>/dev/null | grep -q ":8765"; then
+            echo -e "${GREEN}✅ Puerto WebSocket 8765 abierto${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Puerto WebSocket 8765 no responde${NC}"
+        fi
+    else
+        echo -e "${RED}❌ Servidor web no activo${NC}"
+    fi
+    
+    echo ""
+    
+    # Verificar monitor
+    local monitor_pid=$(pgrep -f "batman-monitor-safe")
+    if [ -n "$monitor_pid" ]; then
+        echo -e "${GREEN}✅ Monitor activo${NC} (PID: $monitor_pid)"
+        
+        # Verificar archivos de estado
+        if [ -f /tmp/batman_status.json ]; then
+            local mod_time=$(stat -c %Y /tmp/batman_status.json 2>/dev/null || stat -f %m /tmp/batman_status.json 2>/dev/null)
+            local current_time=$(date +%s)
+            local age=$((current_time - mod_time))
+            
+            if [ $age -lt 10 ]; then
+                echo -e "${GREEN}✅ Datos actualizándose${NC} (última actualización: hace ${age}s)"
+            else
+                echo -e "${YELLOW}⚠️  Datos desactualizados${NC} (última actualización: hace ${age}s)"
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Monitor no activo${NC}"
+        echo "   Ejecuta: ./monitor start"
+    fi
+}
+
+# Abrir en navegador
+open_browser() {
+    local url="http://localhost:8080"
+    
+    # Verificar que el servidor esté activo
+    if ! pgrep -f "web_server.py" > /dev/null; then
+        echo -e "${YELLOW}⚠️  Servidor no activo. Iniciando...${NC}"
+        start_server
+        sleep 2
+    fi
+    
+    echo -e "${GREEN}🌐 Abriendo navegador...${NC}"
+    
+    # Detectar comando para abrir navegador
+    if command -v xdg-open &> /dev/null; then
+        xdg-open "$url"
+    elif command -v open &> /dev/null; then
+        open "$url"
+    elif command -v start &> /dev/null; then
+        start "$url"
+    else
+        echo -e "${YELLOW}No se pudo abrir el navegador automáticamente${NC}"
+        echo "Abre manualmente: $url"
+    fi
+}
+
+# Main
+case "${1:-help}" in
+    start)
+        start_server
+        ;;
+    stop)
+        stop_server
+        ;;
+    status)
+        show_status
+        ;;
+    open)
+        open_browser
+        ;;
+    restart)
+        stop_server
+        sleep 1
+        start_server
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo -e "${RED}❌ Comando no reconocido: $1${NC}"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac

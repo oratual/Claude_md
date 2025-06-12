@@ -1,0 +1,74 @@
+#!/bin/bash
+# Batman Parallel - Ejecuta múltiples instancias sin conflictos
+# Usa el mejor método disponible en el sistema
+
+set -e
+
+# Verificar argumentos
+if [ $# -eq 0 ]; then
+    echo "Uso: batman-parallel <nombre-proyecto> [argumentos-batman]"
+    echo ""
+    echo "Ejemplos:"
+    echo "  batman-parallel disk 'compilar DiskDominator'"
+    echo "  batman-parallel api 'desarrollar backend API'"
+    echo "  batman-parallel docs 'generar documentación'"
+    exit 1
+fi
+
+PROJECT_NAME="$1"
+shift
+
+# Colores
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'  
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${BLUE}🦇 Batman Parallel - Proyecto: ${YELLOW}$PROJECT_NAME${NC}"
+
+# Método 1: Si tienes firejail (más fácil y seguro)
+if command -v firejail &> /dev/null; then
+    echo -e "${GREEN}✓ Usando firejail para aislamiento${NC}"
+    
+    # Crear directorio temporal para esta instancia
+    INSTANCE_DIR="$HOME/.batman-parallel/$PROJECT_NAME"
+    mkdir -p "$INSTANCE_DIR"/{tmp,logs}
+    
+    exec firejail \
+        --private-tmp \
+        --env=BATMAN_PROJECT="$PROJECT_NAME" \
+        --env=BATMAN_LOG_DIR="$INSTANCE_DIR/logs" \
+        --whitelist="$HOME/glados" \
+        --quiet \
+        python3 "$(dirname "$0")/batman.py" "$@"
+
+# Método 2: Usar directorios separados (simple pero efectivo)
+else
+    echo -e "${GREEN}✓ Usando directorios aislados${NC}"
+    
+    # Crear estructura de directorios para el proyecto
+    PROJECT_DIR="$HOME/.batman-parallel/$PROJECT_NAME"
+    mkdir -p "$PROJECT_DIR"/{tmp,logs,worktrees,state}
+    
+    # Configurar ambiente
+    export BATMAN_PROJECT="$PROJECT_NAME"
+    export TMPDIR="$PROJECT_DIR/tmp"
+    export BATMAN_LOG_DIR="$PROJECT_DIR/logs"
+    export BATMAN_STATE_DIR="$PROJECT_DIR/state"
+    export BATMAN_WORKTREE_BASE="$PROJECT_DIR/worktrees"
+    
+    # Archivos específicos que causan conflicto
+    export BATMAN_STATUS_FILE="$PROJECT_DIR/state/status.json"
+    export BATMAN_MONITOR_LOG="$PROJECT_DIR/logs/monitor.log"
+    export BATMAN_MONITOR_PID="$PROJECT_DIR/state/monitor.pid"
+    export BATMAN_REAL_WORK_LOG="$PROJECT_DIR/logs/real_work.log"
+    
+    echo "  Logs: $BATMAN_LOG_DIR"
+    echo "  Estado: $BATMAN_STATE_DIR"
+    echo "  Temp: $TMPDIR"
+    echo ""
+    
+    # Ejecutar Batman
+    cd "$(dirname "$0")"
+    exec python3 batman.py "$@"
+fi

@@ -1,0 +1,37 @@
+[
+  {
+    "ally": "robin",
+    "type": "health",
+    "name": "System health check",
+    "wait": true
+  },
+  {
+    "ally": "robin",
+    "type": "execute",
+    "files": ["tasks/robin-system.txt"],
+    "name": "Execute system maintenance",
+    "wait": true
+  },
+  {
+    "ally": "claude",
+    "project": "/home/lauta/glados/batman",
+    "instructions": "Review the code in src/ directory. Look for TODO comments and implement them. Focus on error handling improvements. Make small, focused commits.",
+    "name": "Code improvements",
+    "wait": false
+  },
+  {
+    "ally": "robin",
+    "type": "backup",
+    "source": "/home/lauta/glados/batman/src",
+    "destination": "/tmp",
+    "name": "Backup source code",
+    "wait": true
+  },
+  {
+    "ally": "robin",
+    "type": "clean",
+    "days": 7,
+    "name": "Clean old logs",
+    "wait": true
+  }
+]

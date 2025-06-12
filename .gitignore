@@ -1,0 +1,61 @@
+# Editor directories and files
+.cursor/
+.roo/
+.roomodes
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.backup
+*-backup-*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+target/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*\.class
+.venv/
+venv/
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Taskmaster
+.taskmaster/
+
+# WSL config (user-specific)
+.wslconfig
+
+# Windsurf
+.windsurfrules

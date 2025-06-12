@@ -1,0 +1,85 @@
+#!/bin/bash
+#
+# Infinity Mode Demo - Demostración rápida del modo paralelo
+#
+
+echo "🌌 BATMAN INCORPORATED - INFINITY MODE DEMO"
+echo "==========================================="
+echo ""
+
+# Verificar configuración
+echo "🔍 Verificando configuración..."
+
+if [ ! -f "launch-infinity" ]; then
+    echo "❌ Launch infinity no encontrado"
+    echo "💡 Ejecuta: python3 parallel_launcher.py"
+    exit 1
+fi
+
+if [ ! -f "batman-infinity-monitor" ]; then
+    echo "❌ Monitor no encontrado"
+    exit 1
+fi
+
+echo "✅ Componentes encontrados"
+echo ""
+
+# Mostrar opciones
+echo "🎯 Opciones disponibles:"
+echo ""
+echo "1. 🚀 Lanzar agentes automáticamente"
+echo "2. 📊 Monitor de progreso"
+echo "3. 🔧 Setup rápido"
+echo "4. 📋 Estado de coordinación"
+echo "5. 🧪 Test básico"
+echo ""
+
+read -p "Selecciona opción (1-5): " choice
+
+case $choice in
+    1)
+        echo "🚀 Lanzando agentes..."
+        ./launch-infinity --auto
+        ;;
+    2)
+        echo "📊 Iniciando monitor..."
+        ./progress-monitor
+        ;;
+    3)
+        echo "🔧 Ejecutando setup..."
+        ./quick-setup
+        ;;
+    4)
+        echo "📋 Estado de coordinación..."
+        ./state-coordinator
+        ;;
+    5)
+        echo "🧪 Test básico..."
+        echo "Verificando Python..."
+        python3 -c "import json, time; print('✅ Python OK')"
+        
+        echo "Verificando Claude CLI..."
+        if command -v claude &> /dev/null; then
+            echo "✅ Claude CLI disponible"
+            claude --version
+        else
+            echo "❌ Claude CLI no encontrado"
+        fi
+        
+        echo "Verificando archivos..."
+        ls -la batman-infinity-monitor launch-infinity state-coordinator
+        echo "✅ Test completado"
+        ;;
+    *)
+        echo "❌ Opción no válida"
+        ;;
+esac
+
+echo ""
+echo "🦇 Demo completado!"
+echo ""
+echo "💡 Para uso avanzado:"
+echo "  ./batman.py --infinity                 # Desde Batman principal"
+echo "  ./launch-infinity --auto              # Directo"
+echo "  ./batman-infinity-monitor             # Monitor avanzado"
+echo ""

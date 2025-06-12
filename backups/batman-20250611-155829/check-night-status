@@ -1,0 +1,48 @@
+#!/bin/bash
+# 🔍 Check Night Operations Status
+
+echo "🦇 BATMAN NIGHT OPERATIONS - STATUS CHECK"
+echo "========================================"
+echo "Current time: $(date)"
+echo ""
+
+# Check if running
+if pgrep -f "batman.py.*MISIÓN NOCTURNA" > /dev/null; then
+    echo "✅ Batman is ACTIVE"
+    echo "PID: $(pgrep -f 'batman.py.*MISIÓN NOCTURNA')"
+else
+    echo "❌ Batman is NOT running"
+fi
+
+# Progress file
+if [ -f "/home/lauta/glados/batman-incorporated/night_progress.txt" ]; then
+    echo ""
+    echo "📊 PROGRESS:"
+    cat /home/lauta/glados/batman-incorporated/night_progress.txt
+else
+    echo "❌ No progress file found"
+fi
+
+# Recent logs
+echo ""
+echo "📋 RECENT ACTIVITY (last 10 lines):"
+tail -10 /tmp/batman_night_main_*.log 2>/dev/null || echo "No main logs yet"
+
+echo ""
+echo "🛡️  MONITOR STATUS:"
+tail -5 /tmp/batman_night_monitor.log 2>/dev/null || echo "No monitor logs yet"
+
+# System load
+echo ""
+echo "💻 SYSTEM STATUS:"
+echo "Load: $(uptime | awk -F'load average:' '{print $2}')"
+echo "Memory: $(free -h | grep Mem | awk '{print $3"/"$2}')"
+
+# Git status
+echo ""
+echo "📁 GIT STATUS:"
+cd /home/lauta/glados/DiskDominator
+git status --porcelain | wc -l | xargs echo "Modified files:"
+
+echo ""
+echo "========================================"

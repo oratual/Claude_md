@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<job id="MixedTest">
+<script language="VBScript">
+<![CDATA[
+    WScript.Echo "Parte VBScript del WSF"
+    Dim msg
+    msg = "Sistema: " & CreateObject("WScript.Shell").ExpandEnvironmentStrings("%OS%")
+    WScript.Echo msg
+]]>
+</script>
+<script language="JScript">
+<![CDATA[
+    WScript.Echo("Parte JScript del WSF");
+    var now = new Date();
+    WScript.Echo("Fecha JavaScript: " + now.toString());
+    
+    // Crear un archivo temporal
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var tempFile = fso.GetSpecialFolder(2) + "\\wsl_test.txt";
+    var file = fso.CreateTextFile(tempFile, true);
+    file.WriteLine("Archivo creado desde WSF mixto");
+    file.Close();
+    WScript.Echo("Archivo creado en: " + tempFile);
+]]>
+</script>
+</job>
+</package>

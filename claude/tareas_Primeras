@@ -1,0 +1,60 @@
+# 🌅 TAREAS PRIMERAS - Empezar el día
+
+## ⭐ PRIORIDAD MÁXIMA: DiskDominator Windows Build
+
+### 🔥 PROBLEMA ACTUAL
+Error de compilación en DiskDominator - faltan dependencias Rust:
+```
+error[E0432]: unresolved import `anyhow`
+error[E0432]: unresolved import `tokio` 
+error[E0432]: unresolved import `chrono`
+error[E0432]: unresolved import `blake3`
+error[E0432]: unresolved import `walkdir`
+```
+
+### ✅ SOLUCIÓN INMEDIATA
+Ejecutar en PowerShell desde `K:\_Glados\DiskDominator\src-tauri`:
+```powershell
+cargo add anyhow tokio chrono blake3 walkdir tracing tracing-subscriber
+cargo add tokio --features full
+cargo add chrono --features serde
+cargo add tracing-subscriber --features env-filter
+```
+
+Luego compilar:
+```powershell
+cd ..
+.\BUILD-DISKDOMINATOR.bat
+```
+
+### 📍 ESTADO ACTUAL
+- ✅ Rust MSVC configurado correctamente
+- ✅ Código simplificado sin módulos externos
+- ✅ Repositorio GitHub creado: https://github.com/oratual/DiskDominator-Windows
+- ❌ **FALTA**: Agregar dependencias Rust al Cargo.toml
+
+### 🎯 OBJETIVO
+Generar `disk-dominator.exe` funcional para Windows.
+
+---
+
+## 🗂️ CONTEXT ADICIONAL
+
+### Ubicación proyecto
+- Linux: `/home/lauta/glados/DiskDominator/`
+- Windows: `K:\_Glados\DiskDominator\`
+
+### Scripts disponibles
+- `UPDATE-DEPENDENCIES.ps1` - Agregar dependencias automáticamente
+- `BUILD-DISKDOMINATOR.bat` - Script de build principal
+- `FORCE-MSVC.ps1` - Configurar toolchain MSVC
+
+### Próximos pasos después del .exe
+1. Testear aplicación Windows
+2. Crear installer
+3. Documentar build process
+4. Release en GitHub
+
+---
+🕐 **Creado**: 2025-06-12 01:52 AM
+🎯 **Meta**: Completar build DiskDominator Windows exitosamente

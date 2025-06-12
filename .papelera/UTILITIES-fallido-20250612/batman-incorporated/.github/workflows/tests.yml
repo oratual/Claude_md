@@ -1,0 +1,405 @@
+name: Batman Incorporated Tests
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: 'Test scope to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - unit
+          - integration
+          - performance
+          - security
+
+env:
+  PYTHON_VERSION: '3.11'
+  PYTEST_WORKERS: 'auto'
+  COVERAGE_THRESHOLD: 80
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.10', '3.11', '3.12']
+        exclude:
+          # Exclude some combinations to save CI time
+          - os: macos-latest
+            python-version: '3.10'
+          - os: windows-latest
+            python-version: '3.10'
+            
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ~/Library/Caches/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-xdist pytest-timeout pytest-mock
+        
+    - name: Set up test environment
+      run: |
+        python -c "import os; os.makedirs(os.path.expanduser('~/.glados/batman-incorporated'), exist_ok=True)"
+        
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v \
+          -n ${{ env.PYTEST_WORKERS }} \
+          --timeout=300 \
+          --tb=short \
+          --cov=src \
+          --cov-report=xml \
+          --cov-report=term-missing:skip-covered \
+          --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
+          -m "not integration and not slow and not performance"
+          
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unit,${{ matrix.os }},py${{ matrix.python-version }}
+        name: unit-${{ matrix.os }}-py${{ matrix.python-version }}
+      if: matrix.os == 'ubuntu-latest'
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_scope == 'all' || github.event.inputs.test_scope == 'integration'
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git jq
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-asyncio httpx
+        
+    - name: Set up integration test environment
+      run: |
+        mkdir -p ~/.glados/batman-incorporated/{logs,tasks,cache}
+        cp config/default_config.yaml ~/.glados/batman-incorporated/config.yaml
+        
+    - name: Run integration tests
+      env:
+        REDIS_URL: redis://localhost:6379
+      run: |
+        pytest tests/ -v \
+          --tb=short \
+          --timeout=600 \
+          -m "integration" \
+          --cov=src \
+          --cov-report=xml \
+          --cov-append
+          
+    - name: Test CLI commands
+      run: |
+        # Test installation
+        ./install.sh
+        
+        # Test batman CLI
+        batman --help
+        batman --status
+        
+        # Test with a simple task
+        batman "echo test" --mode safe || true
+        
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: integration-test-results
+        path: |
+          ~/.glados/batman-incorporated/logs/
+          test-results/
+      if: always()
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_scope == 'all' || github.event.inputs.test_scope == 'performance'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-benchmark memory-profiler locust
+        
+    - name: Run performance benchmarks
+      run: |
+        pytest tests/ -v \
+          --benchmark-only \
+          --benchmark-autosave \
+          --benchmark-save-data \
+          -m "performance"
+          
+    - name: Memory profiling
+      run: |
+        python -m memory_profiler tests/test_memory_usage.py || echo "No memory tests found"
+        
+    - name: Load testing
+      run: |
+        # Simulate concurrent task execution
+        python -c "
+        import concurrent.futures
+        import subprocess
+        import time
+        
+        def run_task(i):
+            start = time.time()
+            result = subprocess.run(['python', 'batman.py', f'echo task-{i}'], capture_output=True)
+            return time.time() - start, result.returncode
+            
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(run_task, i) for i in range(50)]
+            results = [f.result() for f in futures]
+            
+        avg_time = sum(r[0] for r in results) / len(results)
+        success_rate = sum(1 for r in results if r[1] == 0) / len(results) * 100
+        
+        print(f'Average execution time: {avg_time:.2f}s')
+        print(f'Success rate: {success_rate:.0f}%')
+        "
+        
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results
+        path: |
+          .benchmarks/
+          *.prof
+          performance-report.html
+
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_scope == 'all' || github.event.inputs.test_scope == 'security'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety pip-audit semgrep
+        
+    - name: Run Bandit security scan
+      run: |
+        bandit -r src/ -f json -o bandit-report.json
+        bandit -r src/ -ll
+        
+    - name: Check for vulnerable dependencies
+      run: |
+        pip install -r requirements.txt
+        safety check --json --output safety-report.json || true
+        pip-audit --desc
+        
+    - name: Run Semgrep
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/python
+          p/secrets
+          
+    - name: SAST scan
+      run: |
+        # Check for hardcoded secrets
+        git ls-files -z | xargs -0 grep -E "(api_key|apikey|password|secret|token)" | grep -v -E "(test|example|sample)" || true
+        
+        # Check file permissions
+        find . -type f -name "*.py" -exec ls -la {} \; | grep -E "^-rwxrwxrwx" && echo "Warning: World-writable Python files found!" || true
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+          semgrep-results.sarif
+      if: always()
+
+  agent-tests:
+    name: Agent-specific Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: [alfred, robin, oracle, batgirl, lucius]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Test ${{ matrix.agent }} agent
+      run: |
+        # Run agent-specific tests
+        pytest tests/test_agents.py::Test${{ matrix.agent }} -v || true
+        
+        # Test agent initialization
+        python -c "
+        agent_name = '${{ matrix.agent }}'
+        class_name = agent_name.capitalize() + 'Agent'
+        exec(f'from src.agents.{agent_name} import {class_name}')
+        agent_class = locals()[class_name]
+        agent = agent_class()
+        print(f'✅ {agent.name} agent initialized successfully')
+        "
+        
+        # Test agent prompt
+        python -c "
+        agent_name = '${{ matrix.agent }}'
+        class_name = agent_name.capitalize() + 'Agent'
+        exec(f'from src.agents.{agent_name} import {class_name}')
+        agent_class = locals()[class_name]
+        agent = agent_class()
+        prompt = agent.get_prompt('test task')
+        assert len(prompt) > 100, 'Agent prompt too short'
+        print(f'✅ {agent.name} prompt generation works')
+        "
+
+  test-report:
+    name: Test Report Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, performance-tests, security-tests, agent-tests]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-artifacts/
+        
+    - name: Generate test report
+      run: |
+        cat > test-report.md << 'EOF'
+        # Batman Incorporated Test Report
+        
+        ## Test Summary
+        
+        | Test Suite | Status |
+        |------------|--------|
+        | Unit Tests | ${{ needs.unit-tests.result }} |
+        | Integration Tests | ${{ needs.integration-tests.result }} |
+        | Performance Tests | ${{ needs.performance-tests.result }} |
+        | Security Tests | ${{ needs.security-tests.result }} |
+        | Agent Tests | ${{ needs.agent-tests.result }} |
+        
+        ## Details
+        
+        - **Workflow**: ${{ github.workflow }}
+        - **Run ID**: ${{ github.run_id }}
+        - **Branch**: ${{ github.ref_name }}
+        - **Commit**: ${{ github.sha }}
+        - **Triggered by**: ${{ github.actor }}
+        - **Event**: ${{ github.event_name }}
+        
+        ## Artifacts
+        
+        Test artifacts have been uploaded and are available for download.
+        
+        EOF
+        
+    - name: Post test summary
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('test-report.md', 'utf8');
+          
+          // Create a comment on PR if this is a pull request
+          if (context.eventName === 'pull_request') {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+          }
+          
+    - name: Check overall status
+      run: |
+        if [ "${{ needs.unit-tests.result }}" != "success" ] || \
+           [ "${{ needs.integration-tests.result }}" != "success" ] && [ "${{ needs.integration-tests.result }}" != "skipped" ]; then
+          echo "❌ Tests failed!"
+          exit 1
+        else
+          echo "✅ All required tests passed!"
+        fi

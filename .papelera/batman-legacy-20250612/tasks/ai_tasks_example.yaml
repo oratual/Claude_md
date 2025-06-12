@@ -1,0 +1,151 @@
+# Ejemplo de archivo de tareas para Batman AI Controller
+# Este archivo define tareas que Batman ejecutará durante la noche
+
+tasks:
+  # Tareas de análisis y optimización
+  - id: analyze_disk_usage
+    title: "Analizar uso de disco y proponer optimizaciones"
+    description: |
+      Analiza el uso actual del disco, identifica archivos grandes que no se han usado
+      recientemente, y propone un plan de limpieza seguro.
+    priority: HIGH
+    context_needed:
+      - "cmd:df -h"
+      - "cmd:du -sh /* 2>/dev/null | sort -rh | head -20"
+    expected_output_type: analysis
+    validation_rules:
+      must_include: ["disk usage", "recommendations"]
+      
+  - id: review_logs
+    title: "Revisar logs del sistema y detectar anomalías"
+    description: |
+      Revisa los logs más recientes del sistema, identifica errores recurrentes
+      o patrones inusuales. Genera un resumen de hallazgos importantes.
+    priority: MEDIUM
+    context_needed:
+      - "cmd:tail -n 100 /var/log/syslog"
+      - "cmd:journalctl -p err -n 50"
+    expected_output_type: analysis
+    
+  # Tareas de mantenimiento con comandos
+  - id: backup_configs
+    title: "Backup de archivos de configuración"
+    description: "Crear backup de archivos de configuración importantes"
+    command: |
+      backup_dir="$HOME/.batman/backups/$(date +%Y%m%d)"
+      mkdir -p "$backup_dir"
+      tar -czf "$backup_dir/configs.tar.gz" \
+        ~/.bashrc ~/.profile ~/.gitconfig \
+        ~/glados/batman/*.yaml \
+        2>/dev/null
+    priority: HIGH
+    timeout: 180
+    
+  - id: clean_temp_files
+    title: "Limpiar archivos temporales antiguos"
+    description: "Eliminar archivos temporales de más de 7 días"
+    command: "find /tmp -type f -mtime +7 -delete 2>/dev/null || true"
+    priority: LOW
+    dependencies: ["analyze_disk_usage"]
+    
+  # Tareas de desarrollo y código
+  - id: code_review_batman
+    title: "Revisar y mejorar código de Batman"
+    description: |
+      Revisa el código actual de Batman, identifica áreas de mejora,
+      sugiere refactorizaciones y optimizaciones. Genera un informe
+      con recomendaciones específicas.
+    priority: MEDIUM
+    context_needed:
+      - "file:/home/lauta/glados/batman/batman.py"
+      - "file:/home/lauta/glados/batman/src/task_executor.py"
+    expected_output_type: code
+    
+  - id: generate_documentation
+    title: "Actualizar documentación de Batman"
+    description: |
+      Basándote en el código actual, actualiza la documentación.
+      Asegúrate de que todos los métodos públicos estén documentados
+      y que los ejemplos estén actualizados.
+    priority: LOW
+    dependencies: ["code_review_batman"]
+    context_needed:
+      - "file:/home/lauta/glados/batman/README.md"
+      - "cmd:ls -la /home/lauta/glados/batman/src/"
+    
+  # Tareas experimentales
+  - id: dream_analysis
+    title: "Análisis creativo del sistema"
+    description: |
+      Usa el modo 'dream' para analizar patrones en el sistema.
+      Busca conexiones no obvias entre diferentes componentes.
+      Propón ideas innovadoras para mejorar la eficiencia.
+    priority: EXPERIMENTAL
+    prompt: |
+      Imagina que eres un detective digital explorando este sistema.
+      ¿Qué patrones ocultos puedes descubrir? ¿Qué conexiones 
+      inesperadas existen entre diferentes partes del sistema?
+      Sé creativo y piensa fuera de la caja.
+    context_needed:
+      - "cmd:ps aux | head -20"
+      - "cmd:netstat -tulpn 2>/dev/null | head -10"
+      
+  - id: security_audit
+    title: "Auditoría básica de seguridad"
+    description: |
+      Realiza una auditoría básica de seguridad. Busca:
+      - Permisos incorrectos en archivos importantes
+      - Puertos abiertos inesperados
+      - Procesos sospechosos
+      Genera recomendaciones de seguridad.
+    priority: HIGH
+    context_needed:
+      - "cmd:find $HOME -type f -perm 777 2>/dev/null | head -20"
+      - "cmd:netstat -tulpn 2>/dev/null"
+      - "cmd:last -20"
+    validation_rules:
+      must_include: ["security", "recommendations"]
+      max_length: 2000
+      
+  # Tareas de integración con otros sistemas
+  - id: claude_squad_integration
+    title: "Verificar integración con Claude Squad"
+    description: |
+      Verifica que la integración con Claude Squad esté funcionando.
+      Lista las sesiones activas y genera un reporte de estado.
+    prompt: |
+      Revisa el código del bridge de Claude Squad. ¿Está correctamente
+      implementado? ¿Qué mejoras sugieres? Genera un plan de testing.
+    priority: MEDIUM
+    context_needed:
+      - "file:/home/lauta/glados/batman/claude_squad_bridge.py"
+      - "cmd:tmux ls 2>/dev/null || echo 'No tmux sessions'"
+      
+  # Tareas de optimización con ML
+  - id: predict_disk_usage
+    title: "Predecir uso futuro de disco"
+    description: |
+      Basándote en el historial de uso de disco (si está disponible),
+      intenta predecir cuándo el disco podría llenarse. Usa análisis
+      estadístico simple para hacer proyecciones.
+    priority: EXPERIMENTAL
+    prompt: |
+      Analiza los patrones de crecimiento del uso de disco.
+      Aunque no tengas herramientas de ML complejas, usa
+      razonamiento lógico y matemático para hacer predicciones.
+    context_needed:
+      - "cmd:df -h /"
+      - "cmd:find /var/log -type f -name '*.log' -exec ls -la {} \\; 2>/dev/null | head -20"
+      
+# Configuración de ejecución
+execution:
+  max_retries: 3
+  retry_delay: 60
+  parallel_tasks: 2
+  
+# Horarios sugeridos (opcional, Batman decide)
+schedule:
+  high_priority: "00:00-02:00"
+  medium_priority: "02:00-04:00"
+  low_priority: "04:00-05:00"
+  experimental: "05:00-06:00"

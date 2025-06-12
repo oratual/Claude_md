@@ -1,0 +1,1 @@
+echo 'EMERGENCY_STOP' > /tmp/batman_emergency_stop && pkill -f batman.py && echo '🛑 Batman stopped at $(date)'

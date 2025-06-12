@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 80px 20px;
+        background: linear-gradient(135deg, var(--batman-dark) 0%, var(--batman-gray) 100%);
+        border-radius: 20px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        100% { transform: rotate(360deg); }
+    }
+
+    .hero-title {
+        font-family: 'Bebas Neue', cursive;
+        font-size: 4rem;
+        color: var(--batman-yellow);
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: #e0e0e0;
+        margin-bottom: 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .bat-logo-large {
+        width: 150px;
+        height: 150px;
+        background: var(--batman-yellow);
+        -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C9 2 2 9 2 9s2 1 4 1c2 0 3-1 3-1s0 2-2 5c0 0 3-1 5-1s5 1 5 1c-2-3-2-5-2-5s1 1 3 1c2 0 4-1 4-1s-7-7-10-7z"/></svg>') no-repeat center;
+        mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C9 2 2 9 2 9s2 1 4 1c2 0 3-1 3-1s0 2-2 5c0 0 3-1 5-1s5 1 5 1c-2-3-2-5-2-5s1 1 3 1c2 0 4-1 4-1s-7-7-10-7z"/></svg>') no-repeat center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        display: inline-block;
+        margin-bottom: 30px;
+        animation: pulse 2s infinite;
+        position: relative;
+        z-index: 1;
+    }
+
+    .feature-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .feature-card {
+        background: var(--batman-gray);
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, var(--batman-yellow), var(--batman-yellow-dark));
+        border-radius: 15px;
+        opacity: 0;
+        z-index: -1;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(255, 215, 0, 0.3);
+    }
+
+    .feature-card:hover::after {
+        opacity: 1;
+    }
+
+    .feature-icon {
+        font-size: 48px;
+        color: var(--batman-yellow);
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    .feature-description {
+        color: #ccc;
+        line-height: 1.6;
+    }
+
+    .cta-section {
+        background: var(--batman-dark);
+        border-radius: 20px;
+        padding: 60px 40px;
+        text-align: center;
+        margin-bottom: 40px;
+        border: 2px solid var(--batman-yellow);
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 30px;
+    }
+
+    .status-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .status-card {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .status-icon {
+        font-size: 36px;
+        color: var(--batman-yellow);
+    }
+
+    .status-content h4 {
+        margin: 0 0 5px 0;
+        color: white;
+    }
+
+    .status-content p {
+        margin: 0;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .testimonial {
+        background: var(--batman-gray);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        font-style: italic;
+        position: relative;
+    }
+
+    .testimonial::before {
+        content: '"';
+        position: absolute;
+        top: -20px;
+        left: 20px;
+        font-size: 80px;
+        color: var(--batman-yellow);
+        opacity: 0.3;
+    }
+
+    .testimonial-author {
+        text-align: right;
+        margin-top: 15px;
+        color: var(--batman-yellow);
+    }
+
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .fade-in-scale {
+        animation: fadeInScale 0.6s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section fade-in-scale">
+        <span class="bat-logo-large"></span>
+        <h1 class="hero-title">BATMAN ENHANCED</h1>
+        <p class="hero-subtitle">Sistema de Automatización Nocturna para Proteger tu Sistema</p>
+        <div class="cta-buttons">
+            <a href="/wizard" class="btn btn-batman btn-lg">
+                <i class="fas fa-magic"></i> Configuración Rápida
+            </a>
+            <a href="/dashboard" class="btn btn-batman-secondary btn-lg">
+                <i class="fas fa-tachometer-alt"></i> Ir al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Section -->
+    <div class="status-section">
+        <div class="status-card fade-in-up">
+            <i class="fas fa-check-circle status-icon" style="color: var(--batman-green);"></i>
+            <div class="status-content">
+                <h4>Sistema Activo</h4>
+                <p>Protección activada 24/7</p>
+            </div>
+        </div>
+        <div class="status-card fade-in-up" style="animation-delay: 0.1s;">
+            <i class="fas fa-shield-alt status-icon"></i>
+            <div class="status-content">
+                <h4>Modo Seguro</h4>
+                <p>Optimizaciones reversibles</p>
+            </div>
+        </div>
+        <div class="status-card fade-in-up" style="animation-delay: 0.2s;">
+            <i class="fas fa-clock status-icon"></i>
+            <div class="status-content">
+                <h4>Próxima Ejecución</h4>
+                <p>Hoy a las 3:00 AM</p>
+            </div>
+        </div>
+        <div class="status-card fade-in-up" style="animation-delay: 0.3s;">
+            <i class="fas fa-chart-line status-icon"></i>
+            <div class="status-content">
+                <h4>Última Ejecución</h4>
+                <p>100% exitosa</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <h2 class="text-center mb-5 fade-in-up">¿Qué hace Batman Enhanced?</h2>
+    <div class="feature-cards">
+        <div class="feature-card fade-in-up">
+            <i class="fas fa-search feature-icon"></i>
+            <h3 class="feature-title">Análisis Inteligente</h3>
+            <p class="feature-description">
+                Escanea tu sistema en busca de archivos grandes, logs con errores,
+                problemas de seguridad y métricas de rendimiento anormales.
+            </p>
+        </div>
+        <div class="feature-card fade-in-up" style="animation-delay: 0.1s;">
+            <i class="fas fa-rocket feature-icon"></i>
+            <h3 class="feature-title">Optimización Automática</h3>
+            <p class="feature-description">
+                Aplica mejoras seguras como limpieza de temporales, compresión de logs
+                y optimización de repositorios Git sin intervención manual.
+            </p>
+        </div>
+        <div class="feature-card fade-in-up" style="animation-delay: 0.2s;">
+            <i class="fab fa-github feature-icon"></i>
+            <h3 class="feature-title">Integración GitHub</h3>
+            <p class="feature-description">
+                Crea issues automáticamente para hallazgos críticos y genera PRs
+                con las optimizaciones sugeridas para tu revisión.
+            </p>
+        </div>
+        <div class="feature-card fade-in-up" style="animation-delay: 0.3s;">
+            <i class="fas fa-brain feature-icon"></i>
+            <h3 class="feature-title">IA Potenciada</h3>
+            <p class="feature-description">
+                Utiliza Claude Code y MCPs para análisis profundo, razonamiento
+                contextual y toma de decisiones inteligentes.
+            </p>
+        </div>
+        <div class="feature-card fade-in-up" style="animation-delay: 0.4s;">
+            <i class="fas fa-file-alt feature-icon"></i>
+            <h3 class="feature-title">Reportes Detallados</h3>
+            <p class="feature-description">
+                Genera informes completos cada mañana con todos los hallazgos,
+                acciones tomadas y recomendaciones para mejorar.
+            </p>
+        </div>
+        <div class="feature-card fade-in-up" style="animation-delay: 0.5s;">
+            <i class="fas fa-bed feature-icon"></i>
+            <h3 class="feature-title">Trabajo Nocturno</h3>
+            <p class="feature-description">
+                Opera silenciosamente mientras duermes, manteniendo tu sistema
+                en óptimas condiciones sin interrumpir tu trabajo.
+            </p>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="cta-section fade-in-up">
+        <h2 class="mb-4">¿Cómo Funciona?</h2>
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="text-center">
+                    <div class="bat-logo mb-3" style="width: 60px; height: 60px; margin: 0 auto;"></div>
+                    <h4>1. Configuración</h4>
+                    <p>Usa el wizard para definir qué analizar y optimizar</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-moon fa-3x mb-3" style="color: var(--batman-yellow);"></i>
+                    <h4>2. Ejecución Nocturna</h4>
+                    <p>Batman trabaja mientras duermes</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-cogs fa-3x mb-3" style="color: var(--batman-yellow);"></i>
+                    <h4>3. Análisis y Acción</h4>
+                    <p>Detecta problemas y aplica soluciones</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-file-alt fa-3x mb-3" style="color: var(--batman-yellow);"></i>
+                    <h4>4. Reporte Matutino</h4>
+                    <p>Revisa todo lo que Batman hizo por ti</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="testimonial fade-in-up">
+                <p>
+                    "Batman Enhanced encontró 50GB de logs antiguos que estaban ocupando
+                    espacio en mi servidor. Ahora todo está optimizado y organizado."
+                </p>
+                <p class="testimonial-author">- Administrador de Sistemas</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="testimonial fade-in-up" style="animation-delay: 0.1s;">
+                <p>
+                    "La integración con GitHub es brillante. Cada mañana tengo issues
+                    detallados sobre lo que necesita atención en mi infraestructura."
+                </p>
+                <p class="testimonial-author">- DevOps Engineer</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final CTA -->
+    <div class="text-center fade-in-up">
+        <h2 class="mb-4">¿Listo para Dormir Tranquilo?</h2>
+        <p class="lead mb-4">
+            Deja que Batman Enhanced proteja tu sistema mientras descansas
+        </p>
+        <a href="/wizard" class="btn btn-batman btn-lg">
+            <i class="fas fa-rocket"></i> Comenzar Ahora
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animated counter for stats
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    const range = end - start;
+    const minTimer = 50;
+    let stepTime = Math.abs(Math.floor(duration / range));
+    stepTime = Math.max(stepTime, minTimer);
+    const startTime = new Date().getTime();
+    const endTime = startTime + duration;
+    let timer;
+
+    function run() {
+        const now = new Date().getTime();
+        const remaining = Math.max((endTime - now) / duration, 0);
+        const value = Math.round(end - (remaining * range));
+        obj.innerHTML = value;
+        if (value == end) {
+            clearInterval(timer);
+        }
+    }
+
+    timer = setInterval(run, stepTime);
+    run();
+}
+
+// Trigger animations when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any animated counters here
+});
+
+// Bat signal easter egg
+let konami = [];
+const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+document.addEventListener('keydown', (e) => {
+    konami.push(e.key);
+    konami.splice(-konamiCode.length - 1, konami.length - konamiCode.length);
+    
+    if (konami.join(',') === konamiCode.join(',')) {
+        activateBatSignal();
+    }
+});
+
+function activateBatSignal() {
+    const signal = document.createElement('div');
+    signal.className = 'bat-signal-animation';
+    signal.innerHTML = '<span class="bat-logo" style="width: 200px; height: 200px;"></span>';
+    signal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        animation: batSignalPulse 2s ease-out;
+    `;
+    document.body.appendChild(signal);
+    
+    setTimeout(() => signal.remove(), 2000);
+}
+</script>
+{% endblock %}

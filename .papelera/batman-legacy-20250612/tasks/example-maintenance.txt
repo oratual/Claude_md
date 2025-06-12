@@ -1,0 +1,59 @@
+# Batman Task File - Ejemplo de Mantenimiento Nocturno
+# Este archivo define tareas que se ejecutarán automáticamente
+
+# Limpieza de archivos temporales
+TASK: cleanup_temp
+SCHEDULE: daily 03:00
+COMMAND: find /tmp -type f -mtime +7 -delete
+RETRY: 2
+TIMEOUT: 300
+ON_ERROR: continue
+
+# Limpieza de logs antiguos
+TASK: cleanup_old_logs
+SCHEDULE: daily 03:30
+COMMAND: find /var/log -name "*.log" -mtime +30 -exec gzip {} \;
+RETRY: 3
+TIMEOUT: 600
+ON_ERROR: continue
+
+# Actualización de índices de búsqueda
+TASK: update_locate_db
+SCHEDULE: daily 04:00
+COMMAND: updatedb --localpaths=/home
+RETRY: 1
+TIMEOUT: 1800
+ON_ERROR: continue
+
+# Verificación de espacio en disco
+TASK: check_disk_space
+SCHEDULE: hourly
+COMMAND: df -h | grep -E '^/dev/' | awk '{if ($5+0 > 80) print "WARNING: " $6 " is " $5 " full"}'
+RETRY: 1
+TIMEOUT: 60
+ON_ERROR: notify
+
+# Backup de configuraciones importantes
+TASK: backup_configs
+SCHEDULE: weekly sunday 02:00
+COMMAND: tar -czf /backups/configs_$(date +%Y%m%d).tar.gz /etc /home/*/.config
+RETRY: 2
+TIMEOUT: 1800
+ON_ERROR: notify
+WORKING_DIR: /
+
+# Análisis de seguridad básico
+TASK: security_check
+SCHEDULE: daily 05:00
+COMMAND: rkhunter --check --skip-keypress --report-warnings-only
+RETRY: 1
+TIMEOUT: 3600
+ON_ERROR: notify
+
+# Optimización de bases de datos SQLite
+TASK: optimize_sqlite_dbs
+SCHEDULE: weekly saturday 03:00
+COMMAND: find /home -name "*.db" -o -name "*.sqlite" | xargs -I {} sqlite3 {} "VACUUM;"
+RETRY: 1
+TIMEOUT: 1800
+ON_ERROR: continue

@@ -1,0 +1,91 @@
+name: software
+version: 1.0.0
+description: "Herramientas completas para desarrollo de software con integración WSL2-Windows"
+author: "Batman Incorporated"
+
+capabilities:
+  - windows_interop        # Interoperabilidad completa WSL2-Windows
+  - cross_compilation      # Compilación para múltiples plataformas
+  - hybrid_development     # Desarrollo híbrido Linux/Windows
+  - automated_testing      # Testing automatizado en ambos sistemas
+  - ci_cd_pipeline        # Pipelines CI/CD multiplataforma
+  - office_automation     # Automatización de Office desde WSL
+  - deployment           # Despliegue a Windows/Linux
+  - clipboard_sync       # Sincronización de clipboard
+  - path_conversion      # Conversión automática de rutas
+
+required_tools:
+  windows:
+    - powershell.exe
+    - cmd.exe
+    - wslpath
+    - clip.exe
+  linux:
+    - git
+    - make
+    - gcc
+  optional:
+    - docker
+    - cargo
+    - npm
+    - dotnet
+    - msbuild.exe
+    - wslview
+    - wsl-open
+
+agent_enhancements:
+  alfred:
+    capabilities:
+      - windows_services     # Gestión de servicios Windows
+      - iis_deployment      # Deploy a IIS
+      - dotnet_development  # Desarrollo .NET
+      - registry_access     # Acceso al registro Windows
+    extra_tools:
+      - powershell_advanced
+      - msbuild_integration
+      - windows_installer
+      
+  robin:
+    capabilities:
+      - hybrid_ci_cd        # CI/CD híbrido
+      - windows_automation  # Automatización Windows
+      - cross_platform_scripts # Scripts multiplataforma
+      - scheduled_tasks     # Tareas programadas Windows
+    extra_tools:
+      - github_actions_hybrid
+      - azure_devops
+      - jenkins_windows
+      
+  batgirl:
+    capabilities:
+      - electron_builder    # Build de apps Electron
+      - tauri_windows      # Apps Tauri para Windows
+      - pwa_deployment     # Deploy de PWAs
+      - ui_testing_windows # Testing UI en Windows
+    extra_tools:
+      - npm_windows
+      - webpack_hybrid
+      - browser_automation
+      
+  oracle:
+    capabilities:
+      - windows_security_scan  # Escaneo de seguridad Windows
+      - cross_platform_testing # Testing multiplataforma
+      - performance_profiling  # Profiling Windows/Linux
+      - vulnerability_check    # Verificación de vulnerabilidades
+    extra_tools:
+      - windows_defender_cli
+      - performance_monitor
+      - security_scanner
+      
+  lucius:
+    capabilities:
+      - office_automation      # Automatización completa Office
+      - data_analysis_excel   # Análisis de datos en Excel
+      - report_generation     # Generación de reportes
+      - com_object_access     # Acceso a objetos COM
+    extra_tools:
+      - excel_automation
+      - word_automation
+      - powerpoint_automation
+      - outlook_integration

@@ -1,0 +1,130 @@
+#!/bin/bash
+# NaranjaUserChat - Colorea las intervenciones del usuario en Claude Code
+# Cambia el gris oscuro por naranja intenso de manera eficiente
+
+# Colores ANSI
+ORANGE='\033[38;5;208m'  # Naranja intenso (256 colors)
+RESET='\033[0m'
+
+# Estado de configuración
+ENABLE_FILE="$HOME/.config/claude-orange-enabled"
+
+# Función para verificar si está habilitado
+is_enabled() {
+    [ -f "$ENABLE_FILE" ]
+}
+
+# Función para habilitar
+enable() {
+    mkdir -p "$(dirname "$ENABLE_FILE")"
+    touch "$ENABLE_FILE"
+    echo "✅ Claude naranja habilitado"
+}
+
+# Función para deshabilitar
+disable() {
+    rm -f "$ENABLE_FILE"
+    echo "❌ Claude naranja deshabilitado"
+}
+
+# Función de ayuda
+show_help() {
+    cat << EOF
+🍊 NaranjaUserChat - Colorea las intervenciones del usuario en Claude Code
+
+INSTALACIÓN:
+  echo 'alias claude="$HOME/glados/scripts/decoration/NaranjaUserChat"' >> ~/.bashrc
+  source ~/.bashrc
+
+USO:
+  claude [argumentos_normales_de_claude]  # Ejecuta claude con coloreo
+  claude --naranja-on                     # Habilita el coloreo
+  claude --naranja-off                    # Deshabilita el coloreo
+  claude --naranja-status                 # Muestra estado actual
+
+EJEMPLOS:
+  claude                    # Claude normal con coloreo (si está habilitado)
+  claude --help            # Ayuda de claude original
+  claude --naranja-status  # ¿Está habilitado?
+
+CARACTERÍSTICAS:
+  • Colorea intervenciones del usuario en naranja intenso
+  • Mínimo impacto en rendimiento (usa sed en streaming)
+  • Se puede activar/desactivar globalmente
+  • Compatible con todos los argumentos de claude
+  • No interfiere con la funcionalidad normal
+
+EOF
+}
+
+# Función principal de coloreo
+colorize_claude() {
+    # Usar stdbuf para desactivar buffering y sed para coloreo en tiempo real
+    stdbuf -oL -eL claude "$@" 2>&1 | stdbuf -oL sed -E "
+        # Colorear líneas que empiecen con típicos indicadores de usuario
+        s/^(Human:|User:|>\s)/\\${ORANGE}&\\${RESET}/
+        
+        # Colorear líneas que parezcan input del usuario (detectar patrones comunes)
+        /^[[:space:]]*[a-zA-Z].*[?.]$/{
+            # Si no contiene patrones típicos de Claude, probablemente es usuario
+            /^(I'll|I'm|Let me|Here|Based on|The|This is)/!{
+                s/^/\\${ORANGE}/
+                s/$/\\${RESET}/
+            }
+        }
+        
+        # Colorear líneas cortas que parezcan comandos o preguntas del usuario
+        /^[[:space:]]*[a-zA-Z0-9_-]{1,20}[[:space:]]*$/{
+            s/^/\\${ORANGE}/
+            s/$/\\${RESET}/
+        }
+    "
+}
+
+# Procesar argumentos
+case "$1" in
+    --naranja-on)
+        enable
+        exit 0
+        ;;
+    --naranja-off)
+        disable
+        exit 0
+        ;;
+    --naranja-status)
+        if is_enabled; then
+            echo "🍊 Claude naranja: HABILITADO"
+        else
+            echo "⚫ Claude naranja: DESHABILITADO"
+        fi
+        exit 0
+        ;;
+    --naranja-help|--help-naranja)
+        show_help
+        exit 0
+        ;;
+    --help)
+        # Mostrar ayuda combinada
+        echo "🍊 WRAPPER NARANJA ACTIVO - Argumentos especiales:"
+        echo "  --naranja-on/off/status/help"
+        echo ""
+        # Delegar al claude original
+        claude "$@"
+        exit $?
+        ;;
+esac
+
+# Verificar si claude está disponible
+if ! command -v claude &> /dev/null; then
+    echo "❌ Error: claude no encontrado en PATH"
+    echo "💡 Instala Claude Code primero: https://docs.anthropic.com/claude-code"
+    exit 1
+fi
+
+# Ejecutar con o sin coloreo según configuración
+if is_enabled; then
+    colorize_claude "$@"
+else
+    # Ejecutar claude normal sin modificaciones
+    claude "$@"
+fi

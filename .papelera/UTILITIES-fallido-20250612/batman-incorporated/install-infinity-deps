@@ -1,0 +1,40 @@
+#!/bin/bash
+# Dependencies Installer - Instala dependencias para Infinity Mode
+
+echo "🦇 Instalando dependencias para Infinity Mode..."
+
+# Verificar si estamos en venv
+if [[ "$VIRTUAL_ENV" != "" ]]; then
+    echo "✅ Virtual environment detectado: $VIRTUAL_ENV"
+    pip_cmd="pip"
+else
+    echo "⚠️ No hay virtual environment, usando pip3"
+    pip_cmd="pip3"
+fi
+
+# Instalar dependencias Python
+echo "📦 Instalando dependencias Python..."
+
+deps=("psutil" "pyyaml" "rich" "textual")
+
+for dep in "${deps[@]}"; do
+    echo "  Instalando $dep..."
+    $pip_cmd install "$dep" --quiet
+    if [ $? -eq 0 ]; then
+        echo "    ✅ $dep instalado"
+    else
+        echo "    ❌ Error instalando $dep"
+    fi
+done
+
+# Verificar instalación
+echo "🔍 Verificando instalación..."
+python3 -c "
+try:
+    import psutil, yaml, rich, textual
+    print('✅ Todas las dependencias están disponibles')
+except ImportError as e:
+    print(f'❌ Dependencia faltante: {e}')
+"
+
+echo "🎉 Instalación completada!"

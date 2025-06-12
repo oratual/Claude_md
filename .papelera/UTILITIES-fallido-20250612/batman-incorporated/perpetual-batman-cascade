@@ -1,0 +1,29 @@
+#!/bin/bash
+# 🔄 BATMAN CASCADA - Sistema Auto-Perpetuante Anti-Parada
+
+echo "🔄 BATMAN CASCADA INICIANDO - Sistema que nunca para"
+
+# Función que lanza Batman que lanza Batman que lanza Batman...
+launch_batman_cascade() {
+    level=$1
+    echo "🦇 Nivel $level: Lanzando Batman cascade..."
+    
+    # Batman nivel N lanza Batman nivel N+1
+    nohup python3 batman.py "CASCADA NIVEL $((level+1)): Mantener DiskDominator trabajando y lanzar siguiente nivel" --mode=seguro --real-agents --auto --local-only > /tmp/batman_cascade_$((level+1)).log 2>&1 &
+    
+    sleep 60  # Esperar 1 minuto entre niveles
+    
+    # Si soy nivel 1-5, lanzo el siguiente nivel
+    if [ $level -lt 5 ]; then
+        launch_batman_cascade $((level+1))
+    fi
+    
+    # Bucle infinito para mantener vivo este nivel
+    while true; do
+        echo "🔄 Nivel $level activo: $(date)" >> /tmp/cascade_$level.log
+        sleep 300  # 5 minutos
+    done
+}
+
+# Iniciar cascada
+launch_batman_cascade 1

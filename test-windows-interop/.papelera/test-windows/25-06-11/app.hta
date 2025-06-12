@@ -1,0 +1,30 @@
+<html>
+<head>
+<title>HTA Test desde WSL</title>
+<HTA:APPLICATION 
+    ID="TestHTA" 
+    APPLICATIONNAME="Test HTA App"
+    SCROLL="yes"
+    SINGLEINSTANCE="yes"
+    WINDOWSTATE="normal">
+</head>
+<script language="VBScript">
+Sub Window_OnLoad
+    window.resizeTo 400, 300
+    document.body.style.backgroundColor = "lightblue"
+End Sub
+
+Sub ShowInfo
+    MsgBox "HTA ejecutado desde WSL!" & vbCrLf & _
+           "Fecha: " & Now & vbCrLf & _
+           "Usuario: " & CreateObject("WScript.Network").UserName, _
+           vbInformation, "Información"
+End Sub
+</script>
+<body>
+    <h1>Test HTA desde WSL</h1>
+    <p>Esta es una aplicación HTML (HTA) creada y ejecutada desde WSL2.</p>
+    <button onclick="ShowInfo()">Mostrar Info</button>
+    <button onclick="window.close()">Cerrar</button>
+</body>
+</html>

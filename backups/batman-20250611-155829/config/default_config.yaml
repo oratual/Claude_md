@@ -1,0 +1,196 @@
+# Batman Incorporated - Configuración por defecto
+# Esta configuración se puede sobrescribir en ~/.glados/batman-incorporated/config.yaml
+
+system:
+  name: "Batman Incorporated"
+  version: "1.0.0"
+  environment: "development"
+  auto_mode: false
+  verbose: false
+
+# Configuración de agentes
+agents:
+  alfred:
+    enabled: true
+    role: "Senior Developer"
+    max_instances: 3
+    specialties:
+      - backend
+      - api
+      - algorithms
+      - refactoring
+  
+  robin:
+    enabled: true
+    role: "DevOps & Junior Developer"
+    max_instances: 2
+    specialties:
+      - infrastructure
+      - automation
+      - ci_cd
+      - scripting
+  
+  oracle:
+    enabled: true
+    role: "QA & Security Lead"
+    max_instances: 2
+    specialties:
+      - testing
+      - security
+      - performance
+      - monitoring
+  
+  batgirl:
+    enabled: true
+    role: "Frontend Specialist"
+    max_instances: 3
+    specialties:
+      - ui_components
+      - ux_design
+      - responsive
+      - accessibility
+  
+  lucius:
+    enabled: true
+    role: "Research & Innovation"
+    max_instances: 2
+    specialties:
+      - research
+      - prototypes
+      - optimization
+      - documentation
+
+# Modos de ejecución
+execution:
+  default_mode: "auto"  # auto, seguro, rapido, redundante
+  use_real_agents: false  # Activar para usar Claude CLI real
+  max_agents: 5
+  max_parallel_tasks: 10
+  timeout_minutes: 60
+  
+  # Modo seguro (Git worktrees)
+  safe_mode:
+    enabled: true
+    auto_merge: true
+    conflict_strategy: "manual"  # manual, theirs, ours
+    cleanup_after: true
+  
+  # Modo rápido (on-the-go)
+  fast_mode:
+    enabled: true
+    direct_commit: true
+    auto_push: false
+  
+  # Modo redundante
+  redundant_mode:
+    enabled: true
+    min_implementations: 2
+    max_implementations: 5
+    selection_strategy: "best"  # best, vote, manual
+  
+  # Modo Infinity - Múltiples instancias reales en paralelo
+  infinity_mode:
+    enabled: true
+    shared_dir: "~/.batman/infinity"
+    monitor_interval: 5  # segundos entre chequeos
+    timeout: 3600  # 1 hora máximo
+    auto_launch: false  # Si true, intenta lanzar terminales automáticamente
+
+# GitHub Integration
+github:
+  enabled: true
+  auto_pr: true
+  auto_issue: true
+  
+  actions:
+    enabled: true
+    mode: "economic"  # economic, normal, intensive
+    max_runs_per_day: 5
+    
+  push:
+    enabled: true
+    branch: "main"
+    force: false
+
+# Logging y reportes
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  narrative_mode: true
+  chapters:
+    - "Análisis Inicial"
+    - "Desarrollo Principal"
+    - "Optimización"
+    - "Finalización"
+  
+  reports:
+    enabled: true
+    format: "markdown"  # markdown, json, html
+    include_metrics: true
+    auto_commit: true
+
+# Rutas y directorios
+paths:
+  base: "~/.glados/batman-incorporated"
+  logs: "${paths.base}/logs"
+  tasks: "${paths.base}/tasks"
+  reports: "${paths.base}/reports"
+  cache: "${paths.base}/cache"
+  worktrees: "${paths.base}/worktrees"
+
+# Arsenal de herramientas
+arsenal:
+  prefer_advanced: true  # Usar rg, fd, bat cuando estén disponibles
+  
+  search:
+    tool: "auto"  # auto, grep, ripgrep
+    default_options: ["--hidden", "--no-ignore-vcs"]
+  
+  edit:
+    tool: "auto"  # auto, native, vim, nano
+    create_backups: true
+  
+  git:
+    sign_commits: true
+    gpg_key: "auto"  # auto detecta de .gitconfig
+    
+# Límites y seguridad
+limits:
+  max_file_size_mb: 100
+  max_files_per_operation: 50
+  max_command_timeout: 300
+  max_memory_mb: 4096
+  
+security:
+  sandbox_mode: false
+  allowed_commands: []  # Vacío = todos permitidos
+  forbidden_paths:
+    - "/etc"
+    - "/sys"
+    - "/proc"
+    - "~/.ssh"
+    - "~/.gnupg"
+
+# Características especiales
+features:
+  dream_mode:
+    enabled: true
+    start_time: "03:00"
+    duration_hours: 4
+    
+  learning_mode:
+    enabled: true
+    save_patterns: true
+    improve_prompts: true
+    
+  auto_cleanup:
+    enabled: true
+    remove_temp_files: true
+    compress_logs: true
+    days_to_keep: 30
+
+# Comportamiento por defecto
+defaults:
+  task_priority: "medium"
+  task_timeout: 3600
+  retry_count: 3
+  retry_delay: 60

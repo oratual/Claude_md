@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Progress Monitor - Monitor de progreso en tiempo real."""
+
+import time
+import json
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+def get_claude_processes():
+    """Obtiene procesos de Claude activos."""
+    try:
+        result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
+        lines = result.stdout.split('\n')
+        claude_procs = []
+        
+        for line in lines:
+            if 'claude' in line and 'batman' not in line:
+                parts = line.split()
+                if len(parts) >= 11:
+                    claude_procs.append({
+                        'pid': parts[1],
+                        'cpu': parts[2],
+                        'mem': parts[3],
+                        'cmd': ' '.join(parts[10:])[:50]
+                    })
+        
+        return claude_procs
+    except:
+        return []
+
+def show_progress():
+    """Muestra progreso en tiempo real."""
+    print("🦇 Batman Progress Monitor")
+    print("=" * 50)
+    
+    try:
+        while True:
+            procs = get_claude_processes()
+            
+            # Limpiar pantalla (simple)
+            print("\033[H\033[J", end="")
+            
+            print(f"🕐 {datetime.now().strftime('%H:%M:%S')} - Agentes activos: {len(procs)}")
+            print("-" * 50)
+            
+            if procs:
+                print(f"{'PID':<8} {'CPU%':<6} {'MEM%':<6} {'COMANDO'}")
+                print("-" * 50)
+                for proc in procs:
+                    print(f"{proc['pid']:<8} {proc['cpu']:<6} {proc['mem']:<6} {proc['cmd']}")
+            else:
+                print("No hay agentes Claude activos")
+            
+            print("\n(Ctrl+C para salir)")
+            time.sleep(2)
+            
+    except KeyboardInterrupt:
+        print("\n👋 Monitor detenido")
+
+if __name__ == "__main__":
+    show_progress()

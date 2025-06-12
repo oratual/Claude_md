@@ -1,0 +1,95 @@
+# 🌙 Batman Incorporated - Configuración Operación Nocturna
+# Deployment autónomo para completar DiskDominator toda la noche
+
+deployment:
+  mode: "autonomous_night"
+  duration: "8_hours"  # Hasta las 10:36 AM
+  auto_recovery: true
+  persistent_logging: true
+
+target_project:
+  name: "DiskDominator"
+  path: "/home/lauta/glados/DiskDominator"
+  priority: "critical"
+  
+tasks:
+  primary_mission: "Completar DiskDominator al 100% - errores Rust, integración frontend-backend, build final"
+  
+  # Tareas específicas identificadas del stress test
+  rust_errors:
+    - "Unificar tipos FileInfo/FileMetadata entre módulos"
+    - "Arreglar imports de módulos (LoggerModule, AuthModule, etc)"
+    - "Añadir dependencia chrono al Cargo.toml"
+    - "Crear iconos faltantes (32x32.png)"
+    - "Unificar estructuras duplicadas (OrganizeRules, FileOperation, AIAnalysisResponse)"
+  
+  integration:
+    - "Conectar frontend React con backend Tauri real"
+    - "Eliminar mock data y usar comandos Tauri"
+    - "Implementar sistema de archivos funcional"
+    - "Añadir detección de duplicados Blake3"
+  
+  final_build:
+    - "Build Rust --release sin errores"
+    - "Build Next.js production"
+    - "Crear instalador Windows"
+    - "Testing automatizado completo"
+
+agents:
+  deployment_strategy: "specialized_parallel"
+  max_agents: 4
+  
+  alfred:
+    focus: "Backend Rust - errores de compilación y módulos"
+    working_hours: "continuous"
+    
+  batgirl:
+    focus: "Frontend React - integración con Tauri"
+    working_hours: "continuous"
+    
+  oracle:
+    focus: "Testing y QA - builds y validaciones"
+    working_hours: "continuous"
+    
+  robin:
+    focus: "DevOps - deployment y automatización"
+    working_hours: "continuous"
+
+monitoring:
+  interval: "5_minutes"
+  log_file: "/tmp/batman_night_operations.log"
+  progress_file: "/home/lauta/glados/batman-incorporated/night_progress.txt"
+  
+  alerts:
+    - "Build successful"
+    - "Critical error encountered"
+    - "Mission progress 25%, 50%, 75%, 100%"
+
+recovery:
+  auto_restart: true
+  max_retries: 10
+  cooldown: "30_seconds"
+  
+  fallback_strategy:
+    - "Switch to safe mode if infinity mode fails"
+    - "Direct file operations if agents fail"
+    - "Emergency commit and push on progress"
+
+github:
+  auto_commit: true
+  commit_frequency: "30_minutes"
+  push_on_milestone: true
+  
+safety:
+  backup_before_start: true
+  progress_checkpoints: true
+  emergency_stop_file: "/tmp/batman_emergency_stop"
+  
+# Comando de inicio nocturno
+startup_command: |
+  cd /home/lauta/glados/batman-incorporated
+  nohup python3 batman.py "MISIÓN NOCTURNA: Completar DiskDominator - arreglar 16 errores Rust, unificar tipos entre módulos, integrar frontend-backend, build final funcional, testing automatizado" --mode=infinity --real-agents --auto --max-agents=4 --verbose > /tmp/batman_night_$(date +%Y%m%d_%H%M).log 2>&1 &
+  
+  echo "🦇 Batman desplegado para operación nocturna"
+  echo "PID: $!" > /tmp/batman_night.pid
+  echo "Inicio: $(date)" >> /home/lauta/glados/batman-incorporated/night_progress.txt

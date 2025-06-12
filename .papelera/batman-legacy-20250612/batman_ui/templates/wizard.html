@@ -1,0 +1,972 @@
+{% extends "base.html" %}
+
+{% block title %}Wizard de Configuración{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wizard-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .wizard-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .wizard-steps::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--batman-gray);
+        z-index: 0;
+    }
+
+    .wizard-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: var(--batman-gray);
+        border: 2px solid var(--batman-gray);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .wizard-step.active .step-number {
+        background: var(--batman-yellow);
+        color: var(--batman-black);
+        border-color: var(--batman-yellow);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    .wizard-step.completed .step-number {
+        background: var(--batman-green);
+        border-color: var(--batman-green);
+        color: white;
+    }
+
+    .step-title {
+        font-size: 14px;
+        color: #999;
+    }
+
+    .wizard-step.active .step-title {
+        color: var(--batman-yellow);
+        font-weight: bold;
+    }
+
+    .wizard-content {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 30px;
+        min-height: 400px;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--batman-yellow);
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 215, 0, 0.05);
+    }
+
+    .file-upload-area:hover {
+        background: rgba(255, 215, 0, 0.1);
+        border-color: var(--batman-yellow-dark);
+    }
+
+    .file-upload-area.dragover {
+        background: rgba(255, 215, 0, 0.2);
+        transform: scale(1.02);
+    }
+
+    .config-preview {
+        background: var(--batman-black);
+        border-radius: 5px;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .task-builder {
+        background: var(--batman-dark);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .schedule-picker {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .schedule-option {
+        padding: 10px 20px;
+        background: var(--batman-dark);
+        border: 2px solid var(--batman-gray);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .schedule-option:hover {
+        border-color: var(--batman-yellow);
+    }
+
+    .schedule-option.selected {
+        background: var(--batman-yellow);
+        color: var(--batman-black);
+        border-color: var(--batman-yellow);
+    }
+
+    .analysis-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        background: var(--batman-dark);
+        border-radius: 8px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .analysis-toggle:hover {
+        background: rgba(255, 215, 0, 0.1);
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 60px;
+        height: 30px;
+        background: var(--batman-gray);
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .toggle-switch.active {
+        background: var(--batman-yellow);
+    }
+
+    .toggle-switch::after {
+        content: '';
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: all 0.3s ease;
+    }
+
+    .toggle-switch.active::after {
+        left: 32px;
+    }
+
+    .quick-templates {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .template-card {
+        background: var(--batman-dark);
+        border: 2px solid var(--batman-gray);
+        border-radius: 10px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .template-card:hover {
+        border-color: var(--batman-yellow);
+        transform: translateY(-5px);
+    }
+
+    .template-card i {
+        font-size: 48px;
+        color: var(--batman-yellow);
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container fade-in-up">
+    <div class="wizard-header">
+        <h1><span class="bat-logo"></span> Wizard de Configuración</h1>
+        <p class="lead">Configura Batman Enhanced paso a paso para proteger tu sistema</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-title">Bienvenida</div>
+        </div>
+        <div class="wizard-step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-title">Análisis</div>
+        </div>
+        <div class="wizard-step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-title">Tareas</div>
+        </div>
+        <div class="wizard-step" data-step="4">
+            <div class="step-number">4</div>
+            <div class="step-title">GitHub</div>
+        </div>
+        <div class="wizard-step" data-step="5">
+            <div class="step-number">5</div>
+            <div class="step-title">Horario</div>
+        </div>
+        <div class="wizard-step" data-step="6">
+            <div class="step-number">6</div>
+            <div class="step-title">Finalizar</div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="wizard-content">
+        <!-- Step 1: Welcome -->
+        <div class="step-content" id="step-1">
+            <h2 class="mb-4">🦇 Bienvenido a Batman Enhanced</h2>
+            <p class="lead mb-4">Este wizard te guiará para configurar Batman Enhanced en tu sistema.</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>¿Qué es Batman Enhanced?</h4>
+                    <ul>
+                        <li>🌙 Sistema de automatización nocturna</li>
+                        <li>🔍 Análisis inteligente del sistema</li>
+                        <li>🛡️ Detección de problemas de seguridad</li>
+                        <li>⚡ Optimización automática</li>
+                        <li>📊 Reportes detallados</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>¿Qué necesitas?</h4>
+                    <ul>
+                        <li>✅ 5 minutos de tu tiempo</li>
+                        <li>✅ Decidir qué quieres monitorear</li>
+                        <li>✅ (Opcional) Cuenta de GitHub</li>
+                        <li>✅ Ganas de dormir tranquilo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert alert-batman mt-4">
+                <i class="fas fa-info-circle"></i> <strong>Tip:</strong> 
+                Puedes importar una configuración existente o usar una plantilla predefinida.
+            </div>
+
+            <div class="quick-templates">
+                <div class="template-card" onclick="loadTemplate('basic')">
+                    <i class="fas fa-shield-alt"></i>
+                    <h5>Configuración Básica</h5>
+                    <p>Análisis esencial del sistema</p>
+                </div>
+                <div class="template-card" onclick="loadTemplate('developer')">
+                    <i class="fas fa-code"></i>
+                    <h5>Desarrollador</h5>
+                    <p>Optimizado para proyectos de código</p>
+                </div>
+                <div class="template-card" onclick="loadTemplate('server')">
+                    <i class="fas fa-server"></i>
+                    <h5>Servidor</h5>
+                    <p>Monitoreo completo de servicios</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Analysis Configuration -->
+        <div class="step-content" id="step-2" style="display: none;">
+            <h2 class="mb-4">🔍 Configuración de Análisis</h2>
+            <p class="lead mb-4">Selecciona qué análisis quieres que Batman realice cada noche.</p>
+
+            <div class="analysis-toggle" onclick="toggleAnalysis('disk_usage')">
+                <div>
+                    <h5 class="mb-1">💾 Análisis de Disco</h5>
+                    <small>Busca archivos grandes y directorios con mucho uso</small>
+                </div>
+                <div class="toggle-switch active" id="toggle-disk_usage"></div>
+            </div>
+
+            <div id="config-disk_usage" class="task-builder mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Umbral de alerta (GB libres)</label>
+                        <input type="number" class="form-control" id="disk_threshold" value="50">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tamaño mínimo archivo grande (MB)</label>
+                        <input type="number" class="form-control" id="large_file_mb" value="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-toggle" onclick="toggleAnalysis('log_analysis')">
+                <div>
+                    <h5 class="mb-1">📋 Análisis de Logs</h5>
+                    <small>Busca errores y patrones sospechosos en logs</small>
+                </div>
+                <div class="toggle-switch active" id="toggle-log_analysis"></div>
+            </div>
+
+            <div id="config-log_analysis" class="task-builder mb-3">
+                <label class="form-label">Patrones a buscar</label>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="log_patterns" value="ERROR,CRITICAL,FAILED">
+                    <button class="btn btn-batman" type="button" onclick="addPattern()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Separados por comas</small>
+            </div>
+
+            <div class="analysis-toggle" onclick="toggleAnalysis('security_audit')">
+                <div>
+                    <h5 class="mb-1">🔒 Auditoría de Seguridad</h5>
+                    <small>Verifica permisos, puertos abiertos y configuraciones</small>
+                </div>
+                <div class="toggle-switch active" id="toggle-security_audit"></div>
+            </div>
+
+            <div class="analysis-toggle" onclick="toggleAnalysis('performance')">
+                <div>
+                    <h5 class="mb-1">⚡ Métricas de Rendimiento</h5>
+                    <small>Monitorea CPU, memoria y procesos pesados</small>
+                </div>
+                <div class="toggle-switch active" id="toggle-performance"></div>
+            </div>
+
+            <div id="config-performance" class="task-builder mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Umbral CPU (%)</label>
+                        <input type="range" class="form-range" id="cpu_threshold" min="50" max="100" value="80">
+                        <span id="cpu_value">80%</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Umbral Memoria (%)</label>
+                        <input type="range" class="form-range" id="memory_threshold" min="50" max="100" value="90">
+                        <span id="memory_value">90%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Task Configuration -->
+        <div class="step-content" id="step-3" style="display: none;">
+            <h2 class="mb-4">📋 Configuración de Tareas</h2>
+            <p class="lead mb-4">Define tareas personalizadas o importa archivos de tareas existentes.</p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Crear Nueva Tarea</h4>
+                    <form id="task-form">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la tarea</label>
+                            <input type="text" class="form-control" id="task_name" placeholder="Ej: Limpiar logs antiguos">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select" id="task_type">
+                                <option value="command">Comando del sistema</option>
+                                <option value="analysis">Análisis con Claude</option>
+                                <option value="maintenance">Mantenimiento</option>
+                                <option value="security">Seguridad</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="command_input">
+                            <label class="form-label">Comando a ejecutar</label>
+                            <textarea class="form-control" id="task_command" rows="3" placeholder="#!/bin/bash&#10;echo 'Hello Batman'"></textarea>
+                        </div>
+                        <div class="mb-3" id="prompt_input" style="display: none;">
+                            <label class="form-label">Prompt para Claude</label>
+                            <textarea class="form-control" id="task_prompt" rows="3" placeholder="Analiza estos archivos y busca vulnerabilidades..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prioridad</label>
+                            <select class="form-select" id="task_priority">
+                                <option value="1">🚨 Crítica</option>
+                                <option value="2">⚠️ Alta</option>
+                                <option value="3" selected>📢 Media</option>
+                                <option value="4">ℹ️ Baja</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-batman" onclick="addTask()">
+                            <i class="fas fa-plus"></i> Agregar Tarea
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <h4>Importar Tareas</h4>
+                    <div class="file-upload-area" id="task-upload-area">
+                        <i class="fas fa-file-upload fa-3x mb-3" style="color: var(--batman-yellow);"></i>
+                        <p>Arrastra archivos YAML aquí o haz clic para seleccionar</p>
+                        <input type="file" id="task-file-input" accept=".yaml,.yml" style="display: none;">
+                    </div>
+                    
+                    <h4 class="mt-4">Tareas Configuradas</h4>
+                    <div id="task-list" class="config-preview">
+                        <p class="text-muted">No hay tareas configuradas aún</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: GitHub Integration -->
+        <div class="step-content" id="step-4" style="display: none;">
+            <h2 class="mb-4">🐙 Integración con GitHub</h2>
+            <p class="lead mb-4">Configura GitHub para recibir reportes y crear issues automáticamente.</p>
+
+            <div class="analysis-toggle mb-4" onclick="toggleGitHub()">
+                <div>
+                    <h5 class="mb-1">Habilitar GitHub Integration</h5>
+                    <small>Crear issues y PRs automáticamente</small>
+                </div>
+                <div class="toggle-switch" id="toggle-github"></div>
+            </div>
+
+            <div id="github-config" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Repositorio</label>
+                            <input type="text" class="form-control" id="github_repo" placeholder="usuario/repositorio">
+                            <small class="text-muted">Formato: owner/repo</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rama por defecto</label>
+                            <input type="text" class="form-control" id="github_branch" value="main">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proyecto (opcional)</label>
+                            <input type="number" class="form-control" id="github_project" placeholder="Número del proyecto">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Opciones de Reporte</h5>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="create_issues" checked>
+                            <label class="form-check-label" for="create_issues">
+                                Crear issues para hallazgos críticos
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="daily_summary" checked>
+                            <label class="form-check-label" for="daily_summary">
+                                Crear resumen diario
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="auto_pr">
+                            <label class="form-check-label" for="auto_pr">
+                                Crear PRs con optimizaciones (experimental)
+                            </label>
+                        </div>
+                        
+                        <button class="btn btn-batman-secondary" onclick="testGitHub()">
+                            <i class="fas fa-check"></i> Verificar Conexión
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-batman mt-4">
+                <i class="fas fa-info-circle"></i> <strong>Nota:</strong> 
+                Asegúrate de tener GitHub CLI instalado y autenticado: <code>gh auth login</code>
+            </div>
+        </div>
+
+        <!-- Step 5: Schedule -->
+        <div class="step-content" id="step-5" style="display: none;">
+            <h2 class="mb-4">⏰ Configuración de Horario</h2>
+            <p class="lead mb-4">Define cuándo quieres que Batman proteja tu sistema.</p>
+
+            <h4>Horario de Ejecución</h4>
+            <div class="schedule-picker mb-4">
+                <div class="schedule-option selected" data-schedule="daily">
+                    <i class="fas fa-moon"></i> Diario (3:00 AM)
+                </div>
+                <div class="schedule-option" data-schedule="weekdays">
+                    <i class="fas fa-briefcase"></i> Días laborables
+                </div>
+                <div class="schedule-option" data-schedule="weekends">
+                    <i class="fas fa-umbrella-beach"></i> Fines de semana
+                </div>
+                <div class="schedule-option" data-schedule="custom">
+                    <i class="fas fa-cog"></i> Personalizado
+                </div>
+            </div>
+
+            <div id="custom-schedule" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Hora de inicio</label>
+                        <input type="time" class="form-control" id="start_time" value="03:00">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Días de la semana</label>
+                        <select class="form-select" multiple id="weekdays">
+                            <option value="mon" selected>Lunes</option>
+                            <option value="tue" selected>Martes</option>
+                            <option value="wed" selected>Miércoles</option>
+                            <option value="thu" selected>Jueves</option>
+                            <option value="fri" selected>Viernes</option>
+                            <option value="sat">Sábado</option>
+                            <option value="sun">Domingo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mt-4">Opciones de Optimización</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="auto_cleanup" checked>
+                        <label class="form-check-label" for="auto_cleanup">
+                            🧹 Limpieza automática de archivos temporales
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="compress_logs" checked>
+                        <label class="form-check-label" for="compress_logs">
+                            📦 Comprimir logs antiguos
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="optimize_git">
+                        <label class="form-check-label" for="optimize_git">
+                            🚀 Optimizar repositorios Git
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-batman">
+                        <h5>🛡️ Modo Seguro</h5>
+                        <p>Batman siempre opera en modo seguro:</p>
+                        <ul class="mb-0">
+                            <li>Solo elimina archivos de más de 7 días</li>
+                            <li>Máximo 10 archivos por ejecución</li>
+                            <li>Crea backups antes de cambios importantes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Finish -->
+        <div class="step-content" id="step-6" style="display: none;">
+            <h2 class="mb-4">✨ ¡Configuración Completa!</h2>
+            <p class="lead mb-4">Batman Enhanced está listo para proteger tu sistema.</p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Resumen de Configuración</h4>
+                    <div class="config-preview" id="config-summary">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4>Próximos Pasos</h4>
+                    <ol>
+                        <li>Guarda tu configuración</li>
+                        <li>Ejecuta una prueba: <code>batman-enhanced --test</code></li>
+                        <li>Revisa el reporte de prueba</li>
+                        <li>Activa la ejecución automática</li>
+                    </ol>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-batman btn-lg" onclick="saveConfiguration()">
+                            <i class="fas fa-save"></i> Guardar Configuración
+                        </button>
+                        <button class="btn btn-batman-secondary" onclick="runTest()">
+                            <i class="fas fa-flask"></i> Ejecutar Prueba
+                        </button>
+                        <button class="btn btn-outline-light" onclick="downloadConfig()">
+                            <i class="fas fa-download"></i> Descargar Configuración
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-success mt-4" id="success-message" style="display: none;">
+                <i class="fas fa-check-circle"></i> <strong>¡Éxito!</strong> 
+                Batman Enhanced ha sido configurado correctamente.
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="d-flex justify-content-between mt-4">
+        <button class="btn btn-outline-light" id="btn-prev" onclick="previousStep()" style="display: none;">
+            <i class="fas fa-arrow-left"></i> Anterior
+        </button>
+        <button class="btn btn-batman ms-auto" id="btn-next" onclick="nextStep()">
+            Siguiente <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const totalSteps = 6;
+let wizardData = {
+    analyses: {
+        disk_usage: { enabled: true, threshold_gb: 50, large_file_mb: 100 },
+        log_analysis: { enabled: true, patterns: ['ERROR', 'CRITICAL', 'FAILED'] },
+        security_audit: { enabled: true },
+        performance_metrics: { enabled: true, cpu_threshold: 80, memory_threshold: 90 }
+    },
+    tasks: [],
+    github: { enabled: false },
+    schedule: 'daily',
+    optimizations: {
+        auto_cleanup: true,
+        compress_logs: true,
+        optimize_git: false
+    }
+};
+
+function updateStepUI() {
+    // Update step indicators
+    document.querySelectorAll('.wizard-step').forEach(step => {
+        const stepNum = parseInt(step.dataset.step);
+        step.classList.remove('active', 'completed');
+        if (stepNum === currentStep) {
+            step.classList.add('active');
+        } else if (stepNum < currentStep) {
+            step.classList.add('completed');
+        }
+    });
+
+    // Show/hide content
+    document.querySelectorAll('.step-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    document.getElementById(`step-${currentStep}`).style.display = 'block';
+
+    // Update buttons
+    document.getElementById('btn-prev').style.display = currentStep > 1 ? 'inline-block' : 'none';
+    document.getElementById('btn-next').textContent = currentStep === totalSteps ? 'Finalizar' : 'Siguiente';
+    document.getElementById('btn-next').innerHTML = currentStep === totalSteps ? 
+        '<i class="fas fa-check"></i> Finalizar' : 
+        'Siguiente <i class="fas fa-arrow-right"></i>';
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        saveStepData();
+        currentStep++;
+        updateStepUI();
+        if (currentStep === totalSteps) {
+            showSummary();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateStepUI();
+    }
+}
+
+function saveStepData() {
+    switch(currentStep) {
+        case 2: // Analysis
+            wizardData.analyses.disk_usage.threshold_gb = parseInt(document.getElementById('disk_threshold').value);
+            wizardData.analyses.disk_usage.large_file_mb = parseInt(document.getElementById('large_file_mb').value);
+            wizardData.analyses.log_analysis.patterns = document.getElementById('log_patterns').value.split(',');
+            wizardData.analyses.performance_metrics.cpu_threshold = parseInt(document.getElementById('cpu_threshold').value);
+            wizardData.analyses.performance_metrics.memory_threshold = parseInt(document.getElementById('memory_threshold').value);
+            break;
+        case 4: // GitHub
+            wizardData.github.enabled = document.getElementById('toggle-github').classList.contains('active');
+            if (wizardData.github.enabled) {
+                wizardData.github.repo = document.getElementById('github_repo').value;
+                wizardData.github.branch = document.getElementById('github_branch').value;
+                wizardData.github.create_issues = document.getElementById('create_issues').checked;
+                wizardData.github.daily_summary = document.getElementById('daily_summary').checked;
+            }
+            break;
+        case 5: // Schedule
+            wizardData.optimizations.auto_cleanup = document.getElementById('auto_cleanup').checked;
+            wizardData.optimizations.compress_logs = document.getElementById('compress_logs').checked;
+            wizardData.optimizations.optimize_git = document.getElementById('optimize_git').checked;
+            break;
+    }
+}
+
+function toggleAnalysis(type) {
+    const toggle = document.getElementById(`toggle-${type}`);
+    toggle.classList.toggle('active');
+    wizardData.analyses[type].enabled = toggle.classList.contains('active');
+    
+    const config = document.getElementById(`config-${type}`);
+    if (config) {
+        config.style.display = toggle.classList.contains('active') ? 'block' : 'none';
+    }
+}
+
+function toggleGitHub() {
+    const toggle = document.getElementById('toggle-github');
+    toggle.classList.toggle('active');
+    document.getElementById('github-config').style.display = 
+        toggle.classList.contains('active') ? 'block' : 'none';
+}
+
+function addTask() {
+    const task = {
+        id: `task_${Date.now()}`,
+        title: document.getElementById('task_name').value,
+        type: document.getElementById('task_type').value,
+        priority: parseInt(document.getElementById('task_priority').value),
+        command: document.getElementById('task_command').value,
+        prompt: document.getElementById('task_prompt').value
+    };
+    
+    wizardData.tasks.push(task);
+    updateTaskList();
+    document.getElementById('task-form').reset();
+}
+
+function updateTaskList() {
+    const list = document.getElementById('task-list');
+    if (wizardData.tasks.length === 0) {
+        list.innerHTML = '<p class="text-muted">No hay tareas configuradas aún</p>';
+    } else {
+        list.innerHTML = wizardData.tasks.map(task => `
+            <div class="mb-2">
+                <strong>${task.title}</strong> - ${task.type} (Prioridad: ${task.priority})
+                <button class="btn btn-sm btn-danger float-end" onclick="removeTask('${task.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+}
+
+function removeTask(taskId) {
+    wizardData.tasks = wizardData.tasks.filter(t => t.id !== taskId);
+    updateTaskList();
+}
+
+function loadTemplate(template) {
+    // Aquí cargarías plantillas predefinidas
+    console.log('Loading template:', template);
+    // Por ahora, solo avanza al siguiente paso
+    nextStep();
+}
+
+function showSummary() {
+    const summary = document.getElementById('config-summary');
+    summary.innerHTML = `
+        <h5>Análisis habilitados:</h5>
+        <ul>
+            ${Object.entries(wizardData.analyses)
+                .filter(([k, v]) => v.enabled)
+                .map(([k, v]) => `<li>${k.replace('_', ' ')}</li>`)
+                .join('')}
+        </ul>
+        <h5>Tareas configuradas: ${wizardData.tasks.length}</h5>
+        <h5>GitHub: ${wizardData.github.enabled ? 'Habilitado' : 'Deshabilitado'}</h5>
+        <h5>Horario: ${wizardData.schedule}</h5>
+    `;
+}
+
+function saveConfiguration() {
+    saveStepData();
+    
+    // Convertir a formato de configuración
+    const config = {
+        github_enabled: wizardData.github.enabled,
+        github_repo: wizardData.github.repo || '',
+        analyses: wizardData.analyses,
+        optimizations: wizardData.optimizations,
+        reporting: {
+            create_github_issues: wizardData.github.create_issues || false,
+            daily_summary: wizardData.github.daily_summary || true
+        }
+    };
+    
+    // Enviar al servidor
+    fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('success-message').style.display = 'block';
+            
+            // Guardar tareas
+            wizardData.tasks.forEach(task => {
+                fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+            });
+        }
+    });
+}
+
+function runTest() {
+    const btn = event.target;
+    btn.innerHTML = '<span class="loading-spinner"></span> Ejecutando...';
+    btn.disabled = true;
+    
+    fetch('/api/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'all' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Prueba';
+        btn.disabled = false;
+        
+        if (data.status === 'success') {
+            alert('Prueba completada exitosamente. Revisa los logs para más detalles.');
+        } else {
+            alert('Error en la prueba: ' + data.errors.join('\n'));
+        }
+    });
+}
+
+function downloadConfig() {
+    const config = {
+        analyses: wizardData.analyses,
+        optimizations: wizardData.optimizations,
+        github: wizardData.github,
+        tasks: wizardData.tasks
+    };
+    
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'batman_config.json';
+    a.click();
+}
+
+// Event listeners
+document.getElementById('task_type').addEventListener('change', function() {
+    const isCommand = this.value === 'command' || this.value === 'maintenance';
+    document.getElementById('command_input').style.display = isCommand ? 'block' : 'none';
+    document.getElementById('prompt_input').style.display = isCommand ? 'none' : 'block';
+});
+
+document.getElementById('cpu_threshold').addEventListener('input', function() {
+    document.getElementById('cpu_value').textContent = this.value + '%';
+});
+
+document.getElementById('memory_threshold').addEventListener('input', function() {
+    document.getElementById('memory_value').textContent = this.value + '%';
+});
+
+// Schedule options
+document.querySelectorAll('.schedule-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.schedule-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        wizardData.schedule = this.dataset.schedule;
+        
+        document.getElementById('custom-schedule').style.display = 
+            this.dataset.schedule === 'custom' ? 'block' : 'none';
+    });
+});
+
+// File upload
+const uploadArea = document.getElementById('task-upload-area');
+const fileInput = document.getElementById('task-file-input');
+
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFileUpload(files[0]);
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFileUpload(e.target.files[0]);
+    }
+});
+
+function handleFileUpload(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'task');
+    
+    fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Archivo cargado exitosamente');
+            // Recargar lista de tareas
+        }
+    });
+}
+
+// Initialize
+updateStepUI();
+</script>
+{% endblock %}

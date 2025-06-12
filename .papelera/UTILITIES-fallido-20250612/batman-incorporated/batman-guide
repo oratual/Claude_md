@@ -1,0 +1,155 @@
+#!/bin/bash
+# Batman Guide - Muestra a Claude cómo usar Batman correctamente
+
+# Colores
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+echo -e "${BLUE}🦇 BATMAN INCORPORATED - Guía de Uso Completo${NC}\n"
+
+# Verificar si es Claude quien ejecuta
+if [ "$1" == "--for-claude" ]; then
+    echo -e "${RED}⚠️  ATENCIÓN CLAUDE: ESTA ES LA FORMA CORRECTA DE USAR BATMAN${NC}\n"
+fi
+
+echo -e "${YELLOW}📋 COMPONENTES PRINCIPALES:${NC}"
+echo -e "  ${CYAN}./batman${NC} - Ejecución estándar (una instancia)"
+echo -e "  ${CYAN}./batman-parallel${NC} - RECOMENDADO para múltiples proyectos"
+echo -e "  ${CYAN}./batman-isolated${NC} - Máximo aislamiento (sandbox)"
+echo -e "  ${CYAN}./batman-multi${NC} - Control manual de instancias"
+echo ""
+
+echo -e "${YELLOW}🚨 REGLAS CRÍTICAS:${NC}"
+echo -e "  ${RED}1.${NC} SIEMPRE usar ${GREEN}--real-agents${NC} para trabajo real"
+echo -e "  ${RED}2.${NC} SIEMPRE especificar ${GREEN}--mode${NC} [safe|fast|infinity|redundant]"
+echo -e "  ${RED}3.${NC} SIEMPRE incluir ${GREEN}--context${NC} con la ruta del proyecto"
+echo -e "  ${RED}4.${NC} USAR ${GREEN}--module software${NC} para tareas Windows/compilación"
+echo ""
+
+echo -e "${YELLOW}✅ EJEMPLOS CORRECTOS:${NC}"
+echo ""
+
+echo -e "${GREEN}1. Compilar para Windows:${NC}"
+cat << 'EOF'
+cd ~/glados/batman-incorporated && ./batman-parallel build \
+  "compilar DiskDominator para Windows usando módulo software" \
+  --real-agents \
+  --mode fast \
+  --context "/home/lauta/glados/DiskDominator" \
+  --module software
+EOF
+echo ""
+
+echo -e "${GREEN}2. Desarrollo de Features:${NC}"
+cat << 'EOF'
+cd ~/glados/batman-incorporated && ./batman-parallel dev \
+  "implementar sistema de autenticación con JWT" \
+  --real-agents \
+  --mode safe \
+  --context "$(pwd)" \
+  --verbose
+EOF
+echo ""
+
+echo -e "${GREEN}3. Testing Multiplataforma:${NC}"
+cat << 'EOF'
+cd ~/glados/batman-incorporated && ./batman-parallel test \
+  "ejecutar suite completa de tests en Linux y Windows" \
+  --real-agents \
+  --mode safe \
+  --context "$(pwd)" \
+  --module software
+EOF
+echo ""
+
+echo -e "${GREEN}4. Tareas Largas/Complejas:${NC}"
+cat << 'EOF'
+cd ~/glados/batman-incorporated && ./batman \
+  "refactorizar arquitectura completa a microservicios" \
+  --real-agents \
+  --mode infinity \
+  --agents 5 \
+  --context "$(pwd)" \
+  --timeout 7200
+EOF
+echo ""
+
+echo -e "${YELLOW}🔧 FLAGS DISPONIBLES:${NC}"
+echo -e "  ${CYAN}--real-agents${NC}     : Ejecutar con agentes reales (OBLIGATORIO)"
+echo -e "  ${CYAN}--mode${NC}           : safe|fast|infinity|redundant"
+echo -e "  ${CYAN}--context${NC}        : Ruta del proyecto"
+echo -e "  ${CYAN}--module${NC}         : Cargar módulo (software, books, etc)"
+echo -e "  ${CYAN}--agents N${NC}       : Número de agentes (infinity mode)"
+echo -e "  ${CYAN}--timeout N${NC}      : Timeout en segundos"
+echo -e "  ${CYAN}--verbose${NC}        : Salida detallada"
+echo -e "  ${CYAN}--dry-run${NC}        : Ver plan sin ejecutar"
+echo -e "  ${CYAN}--no-monitor${NC}     : Sin monitor web"
+echo ""
+
+echo -e "${YELLOW}📦 MÓDULOS DISPONIBLES:${NC}"
+echo -e "  ${CYAN}software${NC}: Windows interop, compilación, Office, deployment"
+echo -e "  ${CYAN}books${NC}:    Escritura y publicación (próximamente)"
+echo -e "  ${CYAN}data${NC}:     Análisis de datos (próximamente)"
+echo ""
+
+echo -e "${YELLOW}🎯 MODOS DE EJECUCIÓN:${NC}"
+echo -e "  ${CYAN}safe${NC}:      Git worktrees, aislamiento completo (DEFAULT)"
+echo -e "  ${CYAN}fast${NC}:      Directo en main, para cambios rápidos"
+echo -e "  ${CYAN}infinity${NC}:  Paralelización máxima, tareas largas"
+echo -e "  ${CYAN}redundant${NC}: Múltiples agentes verifican el trabajo"
+echo ""
+
+echo -e "${RED}❌ ERRORES COMUNES:${NC}"
+echo -e "  • Olvidar ${GREEN}--real-agents${NC}"
+echo -e "  • No especificar ${GREEN}--context${NC}"
+echo -e "  • Usar modo incorrecto"
+echo -e "  • No usar ${GREEN}batman-parallel${NC} para múltiples instancias"
+echo ""
+
+echo -e "${BLUE}💡 PLANTILLA RECOMENDADA:${NC}"
+cat << 'EOF'
+cd ~/glados/batman-incorporated && ./batman-parallel [proyecto] \
+  "[descripción detallada]" \
+  --real-agents \
+  --mode [safe|fast|infinity|redundant] \
+  --context "[ruta]" \
+  --module [software|none]
+EOF
+echo ""
+
+# Si se pasa --examples, mostrar más ejemplos
+if [ "$1" == "--examples" ] || [ "$2" == "--examples" ]; then
+    echo -e "${YELLOW}📚 EJEMPLOS ADICIONALES:${NC}"
+    echo ""
+    
+    echo -e "${GREEN}Generar Documentación:${NC}"
+    cat << 'EOF'
+./batman-parallel docs \
+  "generar documentación completa con diagramas" \
+  --real-agents --mode fast --context "$(pwd)"
+EOF
+    echo ""
+    
+    echo -e "${GREEN}Deploy a Producción:${NC}"
+    cat << 'EOF'
+./batman-parallel deploy \
+  "deploy a IIS con SSL y backup automático" \
+  --real-agents --mode safe --context "$(pwd)" --module software
+EOF
+    echo ""
+    
+    echo -e "${GREEN}Optimización de Performance:${NC}"
+    cat << 'EOF'
+./batman "analizar y optimizar performance del sistema" \
+  --real-agents --mode redundant --context "$(pwd)"
+EOF
+    echo ""
+fi
+
+echo -e "${CYAN}Para más ejemplos: ${NC}./batman-guide --examples"
+echo -e "${CYAN}Para Claude: ${NC}./batman-guide --for-claude"
+echo -e "${CYAN}Documentación completa: ${NC}cat CLAUDE_USAGE_GUIDE.md"

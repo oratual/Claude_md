@@ -1,0 +1,23 @@
+[wsl2]
+# Límites de recursos para evitar consumo excesivo
+memory=4GB              # Limitar memoria (ajustar según tu RAM total)
+processors=2            # CPUs virtuales (ajustar según tu sistema)
+swap=2GB               # Archivo swap
+
+# Mejoras de red y rendimiento
+localhostForwarding=true     # Acceso localhost desde Windows
+networkingMode=mirrored      # Nuevo modo espejo - mejor compatibilidad
+dnsTunneling=true           # Túnel DNS mejorado
+firewall=true               # Firewall habilitado
+
+# Optimizaciones de rendimiento (2025)
+autoMemoryReclaim=gradual    # Liberar memoria automáticamente
+sparseVhd=true              # Reclamar espacio en disco automáticamente
+
+# Configuración de GUI (WSLg)
+guiApplications=true        # Habilitar aplicaciones gráficas
+
+[experimental]
+# Características experimentales útiles
+autoMemoryReclaim=gradual   # Recuperación de memoria mejorada
+sparseVhd=true             # Optimización de disco virtual

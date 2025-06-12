@@ -1,0 +1,3 @@
+#!/bin/bash
+# Wrapper para claude-quota-monitor.py
+exec python3 "$(dirname "$0")/claude-quota-monitor.py" "$@"

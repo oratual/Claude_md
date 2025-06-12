@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batman Incorporated - Agent Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🦇 Batman Incorporated</h1>
+            <div class="status-bar">
+                <div class="status-item" role="status" aria-live="polite">
+                    <span class="status-indicator" id="connection-status" aria-hidden="true"></span>
+                    <span id="connection-text">Connecting...</span>
+                </div>
+                <div class="status-item">
+                    <time class="clock" id="clock" aria-label="Current time"></time>
+                </div>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light theme">
+                    <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="dashboard">
+                <div class="agents-grid">
+                    <!-- Alfred -->
+                    <article class="agent-card" id="agent-alfred" role="region" aria-label="Alfred agent status">
+                        <div class="agent-header">
+                            <h2>🧙 Alfred</h2>
+                            <span class="agent-role">Senior Developer</span>
+                        </div>
+                        <div class="agent-status">
+                            <span class="status-badge idle" role="status" aria-live="polite">IDLE</span>
+                        </div>
+                        <div class="agent-task">
+                            <h3>Current Task</h3>
+                            <p class="task-description" aria-live="polite">Waiting for assignment...</p>
+                        </div>
+                        <div class="agent-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" aria-hidden="true">0%</span>
+                        </div>
+                        <div class="agent-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Lines Changed</span>
+                                <span class="metric-value">0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Time Active</span>
+                                <span class="metric-value">--:--</span>
+                            </div>
+                        </div>
+                        <div class="agent-files">
+                            <h3>Recent Files</h3>
+                            <ul class="file-list" aria-label="Recently modified files"></ul>
+                        </div>
+                    </article>
+
+                    <!-- Robin -->
+                    <div class="agent-card" id="agent-robin">
+                        <div class="agent-header">
+                            <h2>🐦 Robin</h2>
+                            <span class="agent-role">DevOps & Junior Dev</span>
+                        </div>
+                        <div class="agent-status">
+                            <span class="status-badge idle">IDLE</span>
+                        </div>
+                        <div class="agent-task">
+                            <h3>Current Task</h3>
+                            <p class="task-description">Waiting for assignment...</p>
+                        </div>
+                        <div class="agent-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                        <div class="agent-files">
+                            <h3>Recent Files</h3>
+                            <ul class="file-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Oracle -->
+                    <div class="agent-card" id="agent-oracle">
+                        <div class="agent-header">
+                            <h2>👁️ Oracle</h2>
+                            <span class="agent-role">QA & Security</span>
+                        </div>
+                        <div class="agent-status">
+                            <span class="status-badge idle">IDLE</span>
+                        </div>
+                        <div class="agent-task">
+                            <h3>Current Task</h3>
+                            <p class="task-description">Waiting for assignment...</p>
+                        </div>
+                        <div class="agent-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                        <div class="agent-files">
+                            <h3>Recent Files</h3>
+                            <ul class="file-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Batgirl -->
+                    <div class="agent-card" id="agent-batgirl">
+                        <div class="agent-header">
+                            <h2>🦹‍♀️ Batgirl</h2>
+                            <span class="agent-role">Frontend Specialist</span>
+                        </div>
+                        <div class="agent-status">
+                            <span class="status-badge idle">IDLE</span>
+                        </div>
+                        <div class="agent-task">
+                            <h3>Current Task</h3>
+                            <p class="task-description">Waiting for assignment...</p>
+                        </div>
+                        <div class="agent-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                        <div class="agent-files">
+                            <h3>Recent Files</h3>
+                            <ul class="file-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Lucius -->
+                    <div class="agent-card" id="agent-lucius">
+                        <div class="agent-header">
+                            <h2>🦊 Lucius</h2>
+                            <span class="agent-role">Research & Innovation</span>
+                        </div>
+                        <div class="agent-status">
+                            <span class="status-badge idle">IDLE</span>
+                        </div>
+                        <div class="agent-task">
+                            <h3>Current Task</h3>
+                            <p class="task-description">Waiting for assignment...</p>
+                        </div>
+                        <div class="agent-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                        <div class="agent-files">
+                            <h3>Recent Files</h3>
+                            <ul class="file-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="activity-panel" role="log" aria-label="Activity log">
+                    <div class="activity-header">
+                        <h2>🔍 Activity Log</h2>
+                        <div class="activity-controls">
+                            <input type="search" class="search-input" id="log-search" placeholder="Search logs..." aria-label="Search activity logs">
+                            <select class="filter-select" id="log-filter" aria-label="Filter logs by type">
+                                <option value="all">All Types</option>
+                                <option value="success">Success</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                                <option value="info">Info</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="activity-log" id="activity-log" role="feed" aria-live="polite" aria-label="Real-time activity feed">
+                        <div class="log-entry welcome">
+                            <time class="timestamp">00:00:00</time>
+                            <span class="message">Batman Incorporated Monitor initialized. Waiting for agent activity...</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="stats-panel">
+                    <div class="stat-card">
+                        <h3>Total Tasks</h3>
+                        <div class="stat-value" id="total-tasks">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Completed</h3>
+                        <div class="stat-value" id="completed-tasks">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Agents</h3>
+                        <div class="stat-value" id="active-agents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Files Modified</h3>
+                        <div class="stat-value" id="files-modified">0</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Batman Incorporated &copy; 2025 | Real-time Agent Monitoring</p>
+            <nav class="footer-nav" aria-label="Footer navigation">
+                <a href="#" class="footer-link" id="export-logs">Export Logs</a>
+                <a href="#" class="footer-link" id="view-stats">View Statistics</a>
+                <a href="#" class="footer-link" id="settings">Settings</a>
+            </nav>
+        </footer>
+    </div>
+
+    <script src="monitor.js"></script>
+</body>
+</html>

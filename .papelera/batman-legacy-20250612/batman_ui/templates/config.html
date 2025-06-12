@@ -1,0 +1,755 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración{% endblock %}
+
+{% block extra_css %}
+<style>
+    .config-section {
+        background: var(--batman-gray);
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .config-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--batman-yellow);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .config-section:hover::before {
+        opacity: 1;
+    }
+
+    .config-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .config-header h3 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .config-header i {
+        margin-right: 10px;
+        color: var(--batman-yellow);
+    }
+
+    .config-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--batman-dark);
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: var(--batman-yellow);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(30px);
+    }
+
+    .config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .config-item {
+        margin-bottom: 15px;
+    }
+
+    .config-item label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #e0e0e0;
+    }
+
+    .config-item small {
+        color: #999;
+        display: block;
+        margin-top: 5px;
+    }
+
+    .config-actions {
+        position: sticky;
+        bottom: 0;
+        background: var(--batman-black);
+        padding: 20px;
+        margin: -20px -15px 0;
+        border-top: 2px solid var(--batman-yellow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .config-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--batman-green);
+        animation: pulse 2s infinite;
+    }
+
+    .advanced-toggle {
+        cursor: pointer;
+        color: var(--batman-yellow);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .advanced-toggle:hover {
+        color: var(--batman-yellow-dark);
+    }
+
+    .advanced-settings {
+        display: none;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 215, 0, 0.2);
+    }
+
+    .code-editor {
+        background: var(--batman-black);
+        border: 1px solid var(--batman-gray);
+        border-radius: 5px;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        min-height: 200px;
+        color: #e0e0e0;
+    }
+
+    .pattern-tag {
+        display: inline-block;
+        background: var(--batman-dark);
+        border: 1px solid var(--batman-yellow);
+        color: var(--batman-yellow);
+        padding: 5px 10px;
+        border-radius: 20px;
+        margin: 2px;
+        font-size: 14px;
+    }
+
+    .pattern-tag .remove {
+        margin-left: 8px;
+        cursor: pointer;
+        color: var(--batman-red);
+    }
+
+    .config-preview {
+        background: var(--batman-black);
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .import-export {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4 fade-in-up">
+                <span class="bat-logo"></span>
+                Configuración
+            </h1>
+            <p class="lead">Personaliza el comportamiento de Batman Enhanced</p>
+        </div>
+    </div>
+
+    <form id="config-form">
+        <!-- Análisis Section -->
+        <div class="config-section fade-in-up">
+            <div class="config-header">
+                <h3><i class="fas fa-search"></i> Análisis del Sistema</h3>
+                <div class="config-toggle">
+                    <span>Habilitado</span>
+                    <label class="switch">
+                        <input type="checkbox" id="analyses_enabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="config-grid">
+                <div class="config-item">
+                    <label for="disk_threshold">Umbral de Disco (GB libres)</label>
+                    <input type="number" class="form-control" id="disk_threshold" 
+                           value="{{ config.analyses.disk_usage.threshold_gb }}" min="1" max="1000">
+                    <small>Alerta cuando el espacio libre sea menor a este valor</small>
+                </div>
+
+                <div class="config-item">
+                    <label for="large_file_size">Tamaño de Archivo Grande (MB)</label>
+                    <input type="number" class="form-control" id="large_file_size" 
+                           value="{{ config.analyses.disk_usage.large_file_mb }}" min="10" max="10000">
+                    <small>Archivos mayores a este tamaño serán reportados</small>
+                </div>
+
+                <div class="config-item">
+                    <label for="cpu_threshold">Umbral de CPU (%)</label>
+                    <input type="range" class="form-range" id="cpu_threshold" 
+                           value="{{ config.analyses.performance_metrics.cpu_threshold }}" min="50" max="100">
+                    <span id="cpu_value">{{ config.analyses.performance_metrics.cpu_threshold }}%</span>
+                    <small>Alerta cuando el uso de CPU supere este porcentaje</small>
+                </div>
+
+                <div class="config-item">
+                    <label for="memory_threshold">Umbral de Memoria (%)</label>
+                    <input type="range" class="form-range" id="memory_threshold" 
+                           value="{{ config.analyses.performance_metrics.memory_threshold }}" min="50" max="100">
+                    <span id="memory_value">{{ config.analyses.performance_metrics.memory_threshold }}%</span>
+                    <small>Alerta cuando el uso de memoria supere este porcentaje</small>
+                </div>
+            </div>
+
+            <div class="config-item mt-3">
+                <label>Patrones de Error en Logs</label>
+                <div id="error_patterns">
+                    {% for pattern in config.analyses.log_analysis.patterns %}
+                    <span class="pattern-tag">
+                        {{ pattern }}
+                        <span class="remove" onclick="removePattern(this)">×</span>
+                    </span>
+                    {% endfor %}
+                </div>
+                <div class="input-group mt-2">
+                    <input type="text" class="form-control" id="new_pattern" placeholder="Agregar patrón...">
+                    <button class="btn btn-batman" type="button" onclick="addPattern()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <a href="#" class="advanced-toggle" onclick="toggleAdvanced('analysis')">
+                <i class="fas fa-cog"></i> Configuración Avanzada
+            </a>
+            <div class="advanced-settings" id="advanced-analysis">
+                <h5>Directorios a Excluir</h5>
+                <textarea class="form-control" rows="3" placeholder="/tmp&#10;/var/cache&#10;/node_modules"></textarea>
+                
+                <h5 class="mt-3">Tipos de Archivo a Ignorar</h5>
+                <input type="text" class="form-control" placeholder="*.log, *.tmp, *.cache">
+            </div>
+        </div>
+
+        <!-- GitHub Integration -->
+        <div class="config-section fade-in-up" style="animation-delay: 0.1s;">
+            <div class="config-header">
+                <h3><i class="fab fa-github"></i> Integración con GitHub</h3>
+                <div class="config-toggle">
+                    <span>Habilitado</span>
+                    <label class="switch">
+                        <input type="checkbox" id="github_enabled" {{ 'checked' if config.github_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="config-grid" id="github-config" style="{{ 'display: none;' if not config.github_enabled }}">
+                <div class="config-item">
+                    <label for="github_repo">Repositorio</label>
+                    <input type="text" class="form-control" id="github_repo" 
+                           value="{{ config.github_repo }}" placeholder="usuario/repositorio">
+                    <small>Formato: owner/repo</small>
+                </div>
+
+                <div class="config-item">
+                    <label for="github_branch">Rama por Defecto</label>
+                    <input type="text" class="form-control" id="github_branch" 
+                           value="{{ config.github_branch or 'main' }}">
+                    <small>Rama donde se crearán los issues</small>
+                </div>
+
+                <div class="config-item">
+                    <label>Opciones de Reporte</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="create_issues" 
+                               {{ 'checked' if config.reporting.create_github_issues }}>
+                        <label class="form-check-label" for="create_issues">
+                            Crear issues para hallazgos críticos
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="daily_summary" 
+                               {{ 'checked' if config.reporting.daily_summary }}>
+                        <label class="form-check-label" for="daily_summary">
+                            Crear resumen diario como issue
+                        </label>
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <button type="button" class="btn btn-batman-secondary" onclick="testGitHub()">
+                        <i class="fas fa-check"></i> Verificar Conexión
+                    </button>
+                    <div id="github-test-result" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimizations -->
+        <div class="config-section fade-in-up" style="animation-delay: 0.2s;">
+            <div class="config-header">
+                <h3><i class="fas fa-rocket"></i> Optimizaciones Automáticas</h3>
+                <div class="config-toggle">
+                    <span>Habilitado</span>
+                    <label class="switch">
+                        <input type="checkbox" id="optimizations_enabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="alert alert-batman mb-3">
+                <i class="fas fa-shield-alt"></i> <strong>Modo Seguro Activo:</strong> 
+                Todas las optimizaciones son reversibles y solo afectan archivos temporales antiguos.
+            </div>
+
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="auto_cleanup" 
+                               {{ 'checked' if config.optimizations.auto_cleanup }}>
+                        <label class="form-check-label" for="auto_cleanup">
+                            <strong>Limpieza Automática</strong>
+                            <small class="d-block">Elimina archivos temporales de más de 7 días</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="compress_logs" 
+                               {{ 'checked' if config.optimizations.compress_logs }}>
+                        <label class="form-check-label" for="compress_logs">
+                            <strong>Comprimir Logs</strong>
+                            <small class="d-block">Comprime logs de más de 30 días</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="optimize_git" 
+                               {{ 'checked' if config.optimizations.optimize_git }}>
+                        <label class="form-check-label" for="optimize_git">
+                            <strong>Optimizar Git</strong>
+                            <small class="d-block">Ejecuta git gc en repositorios grandes</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <label for="max_files_per_run">Máximo de archivos por ejecución</label>
+                    <input type="number" class="form-control" id="max_files_per_run" 
+                           value="10" min="1" max="100">
+                    <small>Límite de seguridad para operaciones de limpieza</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- MCP Configuration -->
+        <div class="config-section fade-in-up" style="animation-delay: 0.3s;">
+            <div class="config-header">
+                <h3><i class="fas fa-plug"></i> Model Context Protocols (MCP)</h3>
+                <div class="config-toggle">
+                    <span>Habilitado</span>
+                    <label class="switch">
+                        <input type="checkbox" id="mcp_enabled" {{ 'checked' if config.mcp_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="mcp-status" class="mb-3">
+                <h5>MCPs Disponibles:</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-folder fa-2x mb-2" style="color: var(--batman-yellow);"></i>
+                            <p>Filesystem MCP <span class="badge badge-success">Activo</span></p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-memory fa-2x mb-2" style="color: var(--batman-yellow);"></i>
+                            <p>Memory MCP <span class="badge badge-success">Activo</span></p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-code-branch fa-2x mb-2" style="color: #999;"></i>
+                            <p>Git MCP <span class="badge badge-secondary">Inactivo</span></p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-brain fa-2x mb-2" style="color: #999;"></i>
+                            <p>Sequential MCP <span class="badge badge-secondary">Inactivo</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-batman-secondary" onclick="checkMCPs()">
+                <i class="fas fa-sync"></i> Verificar MCPs
+            </button>
+        </div>
+
+        <!-- Schedule Configuration -->
+        <div class="config-section fade-in-up" style="animation-delay: 0.4s;">
+            <div class="config-header">
+                <h3><i class="fas fa-clock"></i> Programación</h3>
+            </div>
+
+            <div class="config-grid">
+                <div class="config-item">
+                    <label for="schedule_time">Hora de Ejecución</label>
+                    <input type="time" class="form-control" id="schedule_time" value="03:00">
+                    <small>Hora diaria para ejecutar Batman Enhanced</small>
+                </div>
+
+                <div class="config-item">
+                    <label>Días de Ejecución</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="mon" checked>
+                            <label class="form-check-label" for="mon">Lun</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tue" checked>
+                            <label class="form-check-label" for="tue">Mar</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="wed" checked>
+                            <label class="form-check-label" for="wed">Mie</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="thu" checked>
+                            <label class="form-check-label" for="thu">Jue</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="fri" checked>
+                            <label class="form-check-label" for="fri">Vie</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sat">
+                            <label class="form-check-label" for="sat">Sáb</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sun">
+                            <label class="form-check-label" for="sun">Dom</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import/Export -->
+        <div class="config-section fade-in-up" style="animation-delay: 0.5s;">
+            <div class="config-header">
+                <h3><i class="fas fa-file-import"></i> Importar/Exportar Configuración</h3>
+            </div>
+
+            <div class="import-export">
+                <button type="button" class="btn btn-batman-secondary" onclick="exportConfig()">
+                    <i class="fas fa-download"></i> Exportar Configuración
+                </button>
+                <button type="button" class="btn btn-batman-secondary" onclick="document.getElementById('import-file').click()">
+                    <i class="fas fa-upload"></i> Importar Configuración
+                </button>
+                <input type="file" id="import-file" accept=".json,.yaml" style="display: none;" onchange="importConfig(this)">
+            </div>
+
+            <div class="config-preview">
+                <h5>Vista Previa de Configuración Actual:</h5>
+                <pre id="config-preview">{{ config | tojson(indent=2) }}</pre>
+            </div>
+        </div>
+    </form>
+
+    <!-- Fixed Actions Bar -->
+    <div class="config-actions">
+        <div class="config-status">
+            <span class="status-dot"></span>
+            <span>Configuración guardada</span>
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-light" onclick="resetConfig()">
+                <i class="fas fa-undo"></i> Restaurar Valores
+            </button>
+            <button type="button" class="btn btn-batman" onclick="saveConfig()">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize sliders
+document.getElementById('cpu_threshold').addEventListener('input', function() {
+    document.getElementById('cpu_value').textContent = this.value + '%';
+});
+
+document.getElementById('memory_threshold').addEventListener('input', function() {
+    document.getElementById('memory_value').textContent = this.value + '%';
+});
+
+// Toggle sections
+document.getElementById('github_enabled').addEventListener('change', function() {
+    document.getElementById('github-config').style.display = this.checked ? 'grid' : 'none';
+});
+
+// Pattern management
+function addPattern() {
+    const input = document.getElementById('new_pattern');
+    const pattern = input.value.trim();
+    if (pattern) {
+        const container = document.getElementById('error_patterns');
+        const tag = document.createElement('span');
+        tag.className = 'pattern-tag';
+        tag.innerHTML = `${pattern} <span class="remove" onclick="removePattern(this)">×</span>`;
+        container.appendChild(tag);
+        input.value = '';
+    }
+}
+
+function removePattern(element) {
+    element.parentElement.remove();
+}
+
+function toggleAdvanced(section) {
+    const advanced = document.getElementById(`advanced-${section}`);
+    advanced.style.display = advanced.style.display === 'none' ? 'block' : 'none';
+}
+
+// Save configuration
+function saveConfig() {
+    const config = gatherConfigData();
+    
+    const btn = event.target;
+    btn.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+    btn.disabled = true;
+    
+    fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+        btn.disabled = false;
+        
+        if (data.status === 'success') {
+            showNotification('Configuración guardada exitosamente', 'success');
+            updateConfigPreview();
+        } else {
+            showNotification('Error al guardar configuración', 'error');
+        }
+    });
+}
+
+function gatherConfigData() {
+    // Gather all form data
+    const patterns = [];
+    document.querySelectorAll('#error_patterns .pattern-tag').forEach(tag => {
+        patterns.push(tag.textContent.replace('×', '').trim());
+    });
+    
+    return {
+        github_enabled: document.getElementById('github_enabled').checked,
+        github_repo: document.getElementById('github_repo').value,
+        mcp_enabled: document.getElementById('mcp_enabled').checked,
+        analyses: {
+            disk_usage: {
+                enabled: document.getElementById('analyses_enabled').checked,
+                threshold_gb: parseInt(document.getElementById('disk_threshold').value),
+                large_file_mb: parseInt(document.getElementById('large_file_size').value)
+            },
+            log_analysis: {
+                enabled: document.getElementById('analyses_enabled').checked,
+                patterns: patterns
+            },
+            performance_metrics: {
+                enabled: document.getElementById('analyses_enabled').checked,
+                cpu_threshold: parseInt(document.getElementById('cpu_threshold').value),
+                memory_threshold: parseInt(document.getElementById('memory_threshold').value)
+            }
+        },
+        optimizations: {
+            auto_cleanup: document.getElementById('auto_cleanup').checked,
+            compress_logs: document.getElementById('compress_logs').checked,
+            optimize_git: document.getElementById('optimize_git').checked
+        },
+        reporting: {
+            create_github_issues: document.getElementById('create_issues').checked,
+            daily_summary: document.getElementById('daily_summary').checked
+        }
+    };
+}
+
+function updateConfigPreview() {
+    const config = gatherConfigData();
+    document.getElementById('config-preview').textContent = JSON.stringify(config, null, 2);
+}
+
+function testGitHub() {
+    const resultDiv = document.getElementById('github-test-result');
+    resultDiv.innerHTML = '<span class="loading-spinner"></span> Verificando...';
+    
+    // Simulate test
+    setTimeout(() => {
+        resultDiv.innerHTML = '<i class="fas fa-check-circle" style="color: var(--batman-green);"></i> Conexión exitosa';
+    }, 2000);
+}
+
+function checkMCPs() {
+    // Check MCP status
+    fetch('/api/mcp/status')
+        .then(response => response.json())
+        .then(data => {
+            // Update MCP status display
+            console.log('MCP Status:', data);
+        });
+}
+
+function exportConfig() {
+    const config = gatherConfigData();
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'batman_config.json';
+    a.click();
+}
+
+function importConfig(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const config = JSON.parse(e.target.result);
+                // Apply imported config to form
+                applyConfig(config);
+                showNotification('Configuración importada exitosamente', 'success');
+            } catch (error) {
+                showNotification('Error al importar configuración', 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+}
+
+function applyConfig(config) {
+    // Apply config values to form fields
+    // This would need to be implemented based on your config structure
+    console.log('Applying config:', config);
+}
+
+function resetConfig() {
+    if (confirm('¿Estás seguro de que quieres restaurar la configuración por defecto?')) {
+        location.reload();
+    }
+}
+
+function showNotification(message, type) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
+    toast.style.zIndex = 9999;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        ${message}
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Auto-save indication
+let configChanged = false;
+document.getElementById('config-form').addEventListener('change', () => {
+    configChanged = true;
+    document.querySelector('.status-dot').style.background = var(--batman-yellow);
+    document.querySelector('.config-status span:last-child').textContent = 'Cambios sin guardar';
+});
+
+// Update preview on load
+updateConfigPreview();
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+#!/bin/bash
+# Quick Setup - Configuración rápida de Infinity Mode
+
+echo "🦇 Batman Incorporated - Quick Setup"
+echo "===================================="
+
+# Verificar dependencias
+echo "🔍 Verificando dependencias..."
+
+if command -v python3 &> /dev/null; then
+    echo "  ✅ Python3 disponible"
+else
+    echo "  ❌ Python3 no encontrado"
+    exit 1
+fi
+
+if command -v claude &> /dev/null; then
+    echo "  ✅ Claude CLI disponible"
+else
+    echo "  ❌ Claude CLI no encontrado"
+    exit 1
+fi
+
+# Crear directorios necesarios
+echo "📁 Creando directorios..."
+mkdir -p logs status results communication archive
+echo "  ✅ Directorios creados"
+
+# Permisos
+echo "🔧 Configurando permisos..."
+chmod +x batman-infinity-monitor launch-infinity state-coordinator progress-monitor
+echo "  ✅ Permisos configurados"
+
+# Test básico
+echo "🧪 Test básico..."
+python3 -c "import json, time, subprocess; print('✅ Módulos básicos OK')"
+
+echo ""
+echo "🎉 Setup completado!"
+echo "🚀 Para usar: ./launch-infinity --auto"

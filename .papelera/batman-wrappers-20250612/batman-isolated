@@ -1,0 +1,108 @@
+#!/bin/bash
+# Batman Isolated - Usa características nativas de Linux para aislamiento perfecto
+# Sin overhead de virtualización, usando namespaces y bind mounts
+
+set -e
+
+# Colores
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Generar ID único para esta instancia
+INSTANCE_ID="${BATMAN_INSTANCE:-$(date +%s)-$$}"
+TASK="${1:-No task specified}"
+
+echo -e "${BLUE}🦇 Batman Isolated Instance${NC}"
+echo -e "${YELLOW}Instance ID: $INSTANCE_ID${NC}"
+echo -e "${GREEN}Task: $TASK${NC}\n"
+
+# Directorio base para la instancia
+INSTANCE_BASE="/tmp/batman-instances/$INSTANCE_ID"
+mkdir -p "$INSTANCE_BASE"/{tmp,home,logs,work}
+
+# Función para limpiar al salir
+cleanup() {
+    echo -e "\n${YELLOW}Limpiando instancia $INSTANCE_ID...${NC}"
+    # Desmontar si está montado
+    mountpoint -q "$INSTANCE_BASE/work" && umount "$INSTANCE_BASE/work" 2>/dev/null || true
+    # Limpiar directorio
+    rm -rf "$INSTANCE_BASE"
+}
+trap cleanup EXIT
+
+# Opción 1: Usar unshare (no requiere sudo)
+if command -v unshare &> /dev/null; then
+    echo -e "${GREEN}Usando unshare para aislamiento de namespace...${NC}"
+    
+    # Crear script para ejecutar dentro del namespace
+    cat > "$INSTANCE_BASE/run.sh" << EOF
+#!/bin/bash
+# Configurar ambiente aislado
+export TMPDIR="$INSTANCE_BASE/tmp"
+export HOME="$INSTANCE_BASE/home"
+export BATMAN_INSTANCE_ID="$INSTANCE_ID"
+export BATMAN_LOG_DIR="$INSTANCE_BASE/logs"
+export BATMAN_TEMP_DIR="$INSTANCE_BASE/tmp"
+export BATMAN_ISOLATED=1
+
+# Cambiar al directorio de Batman
+cd "$(dirname "$0")"
+
+# Ejecutar Batman
+exec python3 batman.py "$@"
+EOF
+    chmod +x "$INSTANCE_BASE/run.sh"
+    
+    # Ejecutar en namespace aislado
+    exec unshare --mount --map-root-user --fork \
+        "$INSTANCE_BASE/run.sh" "$@"
+
+# Opción 2: Usar firejail si está disponible
+elif command -v firejail &> /dev/null; then
+    echo -e "${GREEN}Usando firejail para sandboxing...${NC}"
+    
+    # Configurar firejail con aislamiento personalizado
+    exec firejail \
+        --private-tmp \
+        --private="$INSTANCE_BASE/home" \
+        --env=BATMAN_INSTANCE_ID="$INSTANCE_ID" \
+        --env=BATMAN_LOG_DIR="$INSTANCE_BASE/logs" \
+        --env=BATMAN_TEMP_DIR="$INSTANCE_BASE/tmp" \
+        --quiet \
+        python3 "$(dirname "$0")/batman.py" "$@"
+
+# Opción 3: Usar systemd-run si está disponible
+elif command -v systemd-run &> /dev/null; then
+    echo -e "${GREEN}Usando systemd-run para aislamiento...${NC}"
+    
+    exec systemd-run \
+        --scope \
+        --property="PrivateTmp=yes" \
+        --setenv=BATMAN_INSTANCE_ID="$INSTANCE_ID" \
+        --setenv=BATMAN_LOG_DIR="$INSTANCE_BASE/logs" \
+        --setenv=BATMAN_TEMP_DIR="$INSTANCE_BASE/tmp" \
+        --setenv=TMPDIR="$INSTANCE_BASE/tmp" \
+        python3 "$(dirname "$0")/batman.py" "$@"
+
+# Opción 4: Aislamiento manual con variables de entorno
+else
+    echo -e "${YELLOW}Usando aislamiento básico con variables de entorno...${NC}"
+    echo -e "${YELLOW}Para mejor aislamiento, instala: firejail o systemd${NC}\n"
+    
+    # Configurar ambiente
+    export TMPDIR="$INSTANCE_BASE/tmp"
+    export BATMAN_INSTANCE_ID="$INSTANCE_ID"
+    export BATMAN_LOG_DIR="$INSTANCE_BASE/logs"
+    export BATMAN_TEMP_DIR="$INSTANCE_BASE/tmp"
+    export BATMAN_STATUS_FILE="$INSTANCE_BASE/tmp/status.json"
+    export BATMAN_MONITOR_LOG="$INSTANCE_BASE/tmp/monitor.log"
+    export BATMAN_MONITOR_PID="$INSTANCE_BASE/tmp/monitor.pid"
+    export BATMAN_WORKTREE_BASE="$INSTANCE_BASE/work"
+    
+    # Ejecutar Batman
+    cd "$(dirname "$0")"
+    exec python3 batman.py "$@"
+fi
