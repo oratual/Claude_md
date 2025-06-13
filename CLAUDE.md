@@ -189,6 +189,25 @@ Sistema de sincronización incremental Linux→Windows. Copia solo archivos modi
 ssh -T git@github.com      # Verifica conexión
 ```
 
+### 📚 Si falla la conexión SSH a GitHub:
+1. **Verificar que 1Password Desktop está abierto** en Windows
+2. **Ejecutar el agente**:
+   ```bash
+   ~/.ssh/1password-agent.sh
+   # O si prefieres:
+   source ~/1p_env_setup.sh
+   ```
+3. **Verificar conexión**:
+   ```bash
+   ssh -T git@github.com
+   # Debe responder: "Hi [usuario]! You've successfully authenticated..."
+   ```
+4. **Si sigue fallando**, verificar configuración:
+   ```bash
+   cat ~/.gitconfig | grep -A5 "\[user\]"  # Ver usuario configurado
+   cat ~/.ssh/config | grep -A5 "github"    # Ver config SSH
+   ```
+
 ## 📝 HISTORIAL
 Siempre actualizar `historialDeProyecto.md` después de cambios importantes.
 
