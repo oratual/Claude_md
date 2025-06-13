@@ -7,7 +7,8 @@
 launcher                    # Menú interactivo
 
 # Batman (tareas complejas)
-batman "tarea" --real-agents   # Con agentes reales
+batman "tarea"                 # Agentes reales por defecto
+batman "tarea" --simulate      # Solo para testing (simulado)
 batman-direct "tarea"          # Versión directa sin wrappers
 
 # Sincronización Windows

@@ -3,8 +3,9 @@
 ## 🦇 PRIORIDAD: Batman Incorporated
 Para tareas complejas o múltiples archivos, usar SIEMPRE:
 ```bash
-cd ~/glados/batman-incorporated && ./batman "descripción de la tarea" --real-agents
+cd ~/glados/batman-incorporated && python3 batman.py "descripción de la tarea"
 ```
+**IMPORTANTE**: Batman usa agentes Claude REALES por defecto. Solo usa `--simulate` para testing.
 Batman coordina agentes especializados (Alfred/backend, Batgirl/frontend, Oracle/testing, Robin/DevOps, Lucius/research) con modos de ejecución seguros.
 
 ## 🎯 REGLAS CRÍTICAS
@@ -154,7 +155,7 @@ mshta.exe "$(wslpath -w app.hta)"         # HTA apps
 ## 🚀 COMANDOS INMEDIATOS
 ```bash
 # Tareas complejas
-batman "implementar feature X" --real-agents
+batman "implementar feature X"  # AGENTES REALES por defecto
 
 # Menú proyectos
 ~/glados/scripts/launchers/proyecto-menu-v2.sh
